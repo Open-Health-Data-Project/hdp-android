@@ -1,4 +1,4 @@
-package org.openhdp.hdp
+package org.openhdp.hdt
 
 import org.junit.Test
 

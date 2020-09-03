@@ -1,4 +1,4 @@
-package org.openhdp.hdp
+package org.openhdp.hdt
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
