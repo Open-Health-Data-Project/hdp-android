@@ -1,7 +1,9 @@
-package org.openhdp.hdt.data
+package org.openhdp.hdt.data.relations
 
 import androidx.room.Embedded
 import androidx.room.Relation
+import org.openhdp.hdt.data.Stopwatch
+import org.openhdp.hdt.data.Timestamp
 
 data class StopwatchWithTimestamps(
     @Embedded val stopwatch: Stopwatch,

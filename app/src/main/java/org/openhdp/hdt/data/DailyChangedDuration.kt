@@ -9,11 +9,9 @@ import androidx.room.PrimaryKey
         parentColumns = arrayOf("id"),
         childColumns = arrayOf("stopwatchId"),
         onDelete = ForeignKey.CASCADE)])
-data class DailySum(
+data class DailyChangedDuration(
     val stopwatchId: Int,
-    val totalTime: Long,
-    val changedTime: Long
-
+    val durationChange: Long
 ) {
     @PrimaryKey(autoGenerate = true) val date: Int? = null
 }
