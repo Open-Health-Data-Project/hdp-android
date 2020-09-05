@@ -16,12 +16,12 @@ interface StopwatchDAO {
     suspend fun deleteStopwatch(stopwatch: Stopwatch)
 
     @Query("SELECT name FROM stopwatches WHERE id=:id ")
-    fun getStopwatchName(id: Int): String
+    fun getStopwatchName(id: Int): LiveData<String>
 
     @Query("SELECT categoryId FROM stopwatches WHERE id=:id ")
-    fun getStopwatchCategoryId(id: Int): Int
+    fun getStopwatchCategoryId(id: Int): LiveData<Int>
 
-    @Query("SELECT * FROM stopwatches ORDER BY name")
-    fun getAllStopwatchesAlphabetically(): LiveData<List<Stopwatch>>
+    @Query("SELECT * FROM stopwatches ORDER BY customOrder")
+    fun getAllStopwatchesInOrder(): LiveData<List<Stopwatch>>
 
 }

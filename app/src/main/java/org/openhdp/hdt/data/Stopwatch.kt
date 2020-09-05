@@ -11,6 +11,7 @@ import androidx.room.PrimaryKey
         onDelete = ForeignKey.CASCADE)]
 )
 data class Stopwatch(
+    val customOrder: Int,
     val name: String,
     val categoryId: Int
 ){

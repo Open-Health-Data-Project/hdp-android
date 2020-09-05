@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "daily_sum",
+@Entity(tableName = "daily_changed_durations",
     foreignKeys = [ForeignKey(entity = Stopwatch::class,
         parentColumns = arrayOf("id"),
         childColumns = arrayOf("stopwatchId"),
