@@ -2,8 +2,8 @@ package org.openhdp.hdt.data.relations
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import org.openhdp.hdt.data.Category
-import org.openhdp.hdt.data.Stopwatch
+import org.openhdp.hdt.data.entities.Category
+import org.openhdp.hdt.data.entities.Stopwatch
 
 data class CategoryWithStopwatches(
     @Embedded val category: Category,

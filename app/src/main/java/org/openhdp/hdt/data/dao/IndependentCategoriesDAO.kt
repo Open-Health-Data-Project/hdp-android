@@ -2,8 +2,7 @@ package org.openhdp.hdt.data.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import org.openhdp.hdt.data.Category
-import org.openhdp.hdt.data.IndependentCategories
+import org.openhdp.hdt.data.entities.IndependentCategories
 
 @Dao
 interface IndependentCategoriesDAO {
@@ -17,6 +16,6 @@ interface IndependentCategoriesDAO {
     suspend fun deleteIndependentCategories(independentCategories: IndependentCategories)
 
     @Query("SELECT EXISTS(SELECT * FROM independent_categories WHERE category1 IN (:cat1, :cat2) AND category2 IN (:cat1, :cat2) AND category1 != category2)")
-    fun areIndependentCategories(cat1: Category, cat2: Category): LiveData<Boolean>
+    fun areIndependentCategories(cat1: Int, cat2: Int): LiveData<Boolean>
 
 }

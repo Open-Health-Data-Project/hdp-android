@@ -1,17 +1,19 @@
-package org.openhdp.hdt.data
+package org.openhdp.hdt.data.entities
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "daily_changed_durations",
+    indices = [Index(value = ["stopwatchId"], unique = true)],
     foreignKeys = [ForeignKey(entity = Stopwatch::class,
         parentColumns = arrayOf("id"),
         childColumns = arrayOf("stopwatchId"),
         onDelete = ForeignKey.CASCADE)])
 data class DailyChangedDuration(
-    val stopwatchId: Int,
-    val durationChange: Long
+    var stopwatchId: Int,
+    var durationChange: Long
 ) {
-    @PrimaryKey(autoGenerate = true) val date: Int? = null
+    @PrimaryKey(autoGenerate = true) var date: Int? = null
 }

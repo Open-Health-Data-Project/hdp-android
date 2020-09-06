@@ -2,7 +2,7 @@ package org.openhdp.hdt.data.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import org.openhdp.hdt.data.Timestamp
+import org.openhdp.hdt.data.entities.Timestamp
 
 @Dao
 interface TimestampDAO {

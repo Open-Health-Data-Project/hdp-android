@@ -1,12 +1,12 @@
-package org.openhdp.hdt.data
+package org.openhdp.hdt.data.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "independent_categories")
 data class IndependentCategories(
-    val category1: Int,
-    val category2: Int
+    var category1: Int,
+    var category2: Int
 ){
-    @PrimaryKey(autoGenerate = true) val id: Int? = null
+    @PrimaryKey(autoGenerate = true) var id: Int? = null
 }
