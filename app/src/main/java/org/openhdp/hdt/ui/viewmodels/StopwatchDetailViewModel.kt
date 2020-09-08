@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import org.openhdp.hdt.data.StopwatchRepository
 
 
-class MainViewModel @ViewModelInject constructor(
+class StopwatchDetailViewModel @ViewModelInject constructor(
     val stopwatchRepository: StopwatchRepository
 ): ViewModel() {
 }

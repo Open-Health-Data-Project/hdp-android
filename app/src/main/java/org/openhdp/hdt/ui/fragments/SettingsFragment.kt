@@ -7,8 +7,6 @@ import org.openhdp.hdt.R
 import org.openhdp.hdt.ui.viewmodels.MainViewModel
 
 @AndroidEntryPoint
-class MainTrackingFragment : Fragment(R.layout.fragment_main_tracking) {
-
-    private val viewModel: MainViewModel by viewModels()
+class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
 }

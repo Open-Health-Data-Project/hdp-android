@@ -5,10 +5,11 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.openhdp.hdt.R
 import org.openhdp.hdt.ui.viewmodels.MainViewModel
+import org.openhdp.hdt.ui.viewmodels.StopwatchDetailViewModel
 
 @AndroidEntryPoint
-class MainTrackingFragment : Fragment(R.layout.fragment_main_tracking) {
+class StopwatchDetailFragment : Fragment(R.layout.fragment_stopwatch_detail) {
 
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: StopwatchDetailViewModel by viewModels()
 
 }

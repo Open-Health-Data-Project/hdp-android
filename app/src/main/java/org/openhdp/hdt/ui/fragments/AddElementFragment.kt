@@ -4,11 +4,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.openhdp.hdt.R
+import org.openhdp.hdt.ui.viewmodels.AddElementViewModel
 import org.openhdp.hdt.ui.viewmodels.MainViewModel
 
 @AndroidEntryPoint
-class MainTrackingFragment : Fragment(R.layout.fragment_main_tracking) {
+class AddElementFragment : Fragment(R.layout.fragment_add_element) {
 
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: AddElementViewModel by viewModels()
 
 }
