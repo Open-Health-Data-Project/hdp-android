@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Health Data Tracker</string>
+
+    <string name="menu_item_dashboard">Start</string>
+    <string name="menu_item_categories">Kategorie</string>
+    <string name="menu_item_history">Historia</string>
+    <string name="menu_item_settings">Ustawienia</string>
+
+</resources>
