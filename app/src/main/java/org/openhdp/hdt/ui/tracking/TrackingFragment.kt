@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_IDLE
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import org.openhdp.hdt.databinding.FragmentDashboardBinding
+import org.openhdp.hdt.databinding.FragmentTrackingBinding
 import timber.log.Timber
 
 
@@ -20,7 +20,7 @@ class TrackingFragment : Fragment() {
 
     private val viewModel: TrackingViewModel by viewModels(ownerProducer = { requireActivity() })
 
-    private lateinit var binding: FragmentDashboardBinding
+    private lateinit var binding: FragmentTrackingBinding
     private lateinit var adapter: DashboardItemsAdapter
 
     override fun onCreateView(
@@ -28,7 +28,7 @@ class TrackingFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentDashboardBinding.inflate(inflater, container, false)
+        binding = FragmentTrackingBinding.inflate(inflater, container, false)
         return binding.root
     }
 
