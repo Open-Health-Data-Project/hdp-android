@@ -2,7 +2,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/dashboardFragment">
+    app:startDestination="@id/trackingFragment">
 
     <fragment
         android:id="@+id/mainTrackingFragment"
@@ -54,7 +54,7 @@
         android:name="org.openhdp.hdt.ui.fragments.SettingsFragment"
         android:label="SettingsFragment" />
     <fragment
-        android:id="@+id/dashboardFragment"
-        android:name="org.openhdp.hdt.ui.dashboard.DashboardFragment"
+        android:id="@+id/trackingFragment"
+        android:name="org.openhdp.hdt.ui.tracking.TrackingFragment"
         android:label="DashboardFragment" />
 </navigation>

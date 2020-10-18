@@ -1,4 +1,4 @@
-package org.openhdp.hdt.ui.dashboard
+package org.openhdp.hdt.ui.tracking
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -16,9 +16,9 @@ import timber.log.Timber
 
 
 @AndroidEntryPoint
-class DashboardFragment : Fragment() {
+class TrackingFragment : Fragment() {
 
-    private val viewModel: DashboardViewModel by viewModels(ownerProducer = { requireActivity() })
+    private val viewModel: TrackingViewModel by viewModels(ownerProducer = { requireActivity() })
 
     private lateinit var binding: FragmentDashboardBinding
     private lateinit var adapter: DashboardItemsAdapter
@@ -36,33 +36,39 @@ class DashboardFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupGridView()
+        setupAddTimerButton()
 
         viewModel.initialize()
 
         viewModel.viewState.observe(viewLifecycleOwner, ::renderState)
     }
 
+    private fun setupAddTimerButton() {
+        binding.addNewTimer.setOnClickListener {
+
+        }
+    }
+
     private fun setupGridView() {
         val touchHelper = ItemTouchHelper(itemTouchCallback())
 
         adapter = DashboardItemsAdapter().apply {
-            dashboardListener = object : OnDashboardItemClickListener {
-                override fun toggleTimer(item: DashboardItem) {
+            listener = object : OnItemClickListener {
+                override fun toggleTimer(item: TrackingItem) {
                     viewModel.toggleTimer(item)
                 }
 
-                override fun onSettingsClick(item: DashboardItem) {
+                override fun onSettingsClick(item: TrackingItem) {
                     viewModel.onSettingsClick(item)
                 }
             }
             dragChangeListener = object : OnDragChangeListener {
-                override fun onStartDrag(viewHolder: DashboardItemViewHolder) {
+                override fun onStartDrag(viewHolder: RecyclerView.ViewHolder) {
                     viewModel.onDragStarted()
                     touchHelper.startDrag(viewHolder)
                 }
 
                 override fun onEndDrag() {
-
                     viewModel.onDragEnded()
                 }
             }
@@ -73,13 +79,13 @@ class DashboardFragment : Fragment() {
 
     }
 
-    private fun renderState(state: DashboardViewState) {
+    private fun renderState(state: TrackingViewState) {
         Timber.d("renderState $state")
         when (state) {
-            DashboardViewState.Loading -> {
+            TrackingViewState.Loading -> {
 
             }
-            is DashboardViewState.Results -> {
+            is TrackingViewState.Results -> {
                 adapter.items = (state.items)
                 adapter.notifyDataSetChanged()
             }
@@ -92,8 +98,10 @@ class DashboardFragment : Fragment() {
             recyclerView: RecyclerView,
             viewHolder: RecyclerView.ViewHolder
         ): Int {
-            val dragFlags =
-                ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.START or ItemTouchHelper.END
+            val dragFlags = ItemTouchHelper.UP or
+                    ItemTouchHelper.DOWN or
+                    ItemTouchHelper.START or
+                    ItemTouchHelper.END
             val swipeFlags = ACTION_STATE_IDLE
             return makeMovementFlags(dragFlags, swipeFlags)
         }
@@ -110,10 +118,7 @@ class DashboardFragment : Fragment() {
             return true
         }
 
-        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            Timber.w("onSwiped $viewHolder, $direction")
-
-        }
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
 
     }
 }

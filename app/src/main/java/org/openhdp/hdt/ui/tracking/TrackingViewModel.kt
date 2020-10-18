@@ -1,23 +1,25 @@
-package org.openhdp.hdt.ui.dashboard
+package org.openhdp.hdt.ui.tracking
 
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
+import org.openhdp.hdt.R
 import org.openhdp.hdt.data.StopwatchRepository
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 
-class DashboardViewModel @ViewModelInject constructor(
+class TrackingViewModel @ViewModelInject constructor(
     val stopwatchRepository: StopwatchRepository
-) : ViewModel(), OnDashboardItemClickListener {
+) : ViewModel(), OnItemClickListener {
 
-    private val _viewState = MutableLiveData<DashboardViewState>()
+    private val _viewState = MutableLiveData<TrackingViewState>()
 
-    val viewState: LiveData<DashboardViewState>
+    val viewState: LiveData<TrackingViewState>
         get() = _viewState
 
     private var job: Job? = null
@@ -29,28 +31,31 @@ class DashboardViewModel @ViewModelInject constructor(
     }
 
     fun initialize() {
-        _viewState.value = DashboardViewState.Results(
+        _viewState.value = TrackingViewState.Results(
             arrayListOf(
-                DashboardItem(
+                TrackingItem(
                     "0",
                     "Netflix",
                     "",
                     midnight().time + TimeUnit.HOURS.toMillis(2),
-                    DashboardItemState.INACTIVE
+                    TrackState.INACTIVE,
+                    R.color.colorAccent
                 ),
-                DashboardItem(
+                TrackingItem(
                     "1",
                     "spacer",
                     "",
                     midnight().time + TimeUnit.HOURS.toMillis(1),
-                    DashboardItemState.ACTIVE
+                    TrackState.ACTIVE,
+                    R.color.colorYellow
                 ),
-                DashboardItem(
+                TrackingItem(
                     "2",
                     "angielski",
                     "",
                     midnight().time,
-                    DashboardItemState.ACTIVE
+                    TrackState.ACTIVE,
+                    R.color.colorOrange
                 )
             )
         )
@@ -61,7 +66,7 @@ class DashboardViewModel @ViewModelInject constructor(
     private fun countdown() {
         job?.cancel()
         val oneSec = TimeUnit.SECONDS.toMillis(1)
-        job = GlobalScope.async(Dispatchers.Main) {
+        job = viewModelScope.async(Dispatchers.Main) {
             while (true) {
                 delay(oneSec)
                 tick(oneSec)
@@ -70,9 +75,9 @@ class DashboardViewModel @ViewModelInject constructor(
     }
 
     private fun tick(duration: Long) {
-        onState<DashboardViewState.Results> { currentState ->
+        onState<TrackingViewState.Results> { currentState ->
             val items = currentState.items
-            val updatedItems = arrayListOf<DashboardItem>()
+            val updatedItems = arrayListOf<TrackingItem>()
             for (item in items) {
                 if (item.isRunning()) {
                     updatedItems.add(item.copy(timestamp = item.timestamp + duration))
@@ -89,7 +94,7 @@ class DashboardViewModel @ViewModelInject constructor(
         super.onCleared()
     }
 
-    private inline fun <reified T : DashboardViewState> onState(action: (currentState: T) -> DashboardViewState) {
+    private inline fun <reified T : TrackingViewState> onState(action: (currentState: T) -> TrackingViewState) {
         _viewState.value?.let { state ->
             if (state is T) {
                 _viewState.value = action.invoke(state)
@@ -97,8 +102,8 @@ class DashboardViewModel @ViewModelInject constructor(
         }
     }
 
-    override fun toggleTimer(item: DashboardItem) {
-        onState<DashboardViewState.Results> { state ->
+    override fun toggleTimer(item: TrackingItem) {
+        onState<TrackingViewState.Results> { state ->
             val currentItems = state.items
             val currentItemIndex = currentItems.indexOfFirst { it.id == item.id }
             if (currentItemIndex != -1) {
@@ -110,13 +115,13 @@ class DashboardViewModel @ViewModelInject constructor(
         }
     }
 
-    override fun onSettingsClick(item: DashboardItem) {
+    override fun onSettingsClick(item: TrackingItem) {
 
     }
 
-    fun reorder(firstItem: DashboardItem, otherItem: DashboardItem) {
+    fun reorder(firstItem: TrackingItem, otherItem: TrackingItem) {
         Timber.d("reorder $firstItem <-> $otherItem")
-        onState<DashboardViewState.Results> { state ->
+        onState<TrackingViewState.Results> { state ->
             val items = state.items
             val firstIndex = items.indexOfFirst { it.id == firstItem.id }
             val secondIndex = items.indexOfFirst { it.id == otherItem.id }

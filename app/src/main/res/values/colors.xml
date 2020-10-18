@@ -8,4 +8,10 @@
     <color name="active">#4CAF50</color>
     <color name="stopped">#F44336</color>
     <color name="inactive">#757474</color>
+
+    <color name="colorYellow">#FFC107</color>
+    <color name="colorOrange">#FF5722</color>
+    <color name="colorPurple">#7E57C2</color>
+    <color name="colorPink">#F48FB1</color>
+
 </resources>
