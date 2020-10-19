@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/nav_graph"
-    app:startDestination="@id/mainTrackingFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/trackingFragment">
 
     <fragment
         android:id="@+id/mainTrackingFragment"
         android:name="org.openhdp.hdt.ui.fragments.MainTrackingFragment"
-        android:label="MainTrackingFragment" >
+        android:label="MainTrackingFragment">
         <action
             android:id="@+id/action_mainTrackingFragment_to_addElementFragment"
             app:destination="@id/addElementFragment" />
@@ -27,7 +28,7 @@
     <fragment
         android:id="@+id/stopwatchDetailFragment"
         android:name="org.openhdp.hdt.ui.fragments.StopwatchDetailFragment"
-        android:label="StopwatchDetailFragment" >
+        android:label="StopwatchDetailFragment">
         <action
             android:id="@+id/action_stopwatchDetailFragment_to_historyFragment"
             app:destination="@id/historyFragment" />
@@ -39,7 +40,7 @@
     <fragment
         android:id="@+id/categoriesDetailFragment"
         android:name="org.openhdp.hdt.ui.fragments.CategoriesDetailFragment"
-        android:label="CategoriesDetailFragment" >
+        android:label="CategoriesDetailFragment">
         <action
             android:id="@+id/action_categoriesDetailFragment_to_categoriesListFragment"
             app:destination="@id/categoriesListFragment" />
@@ -53,7 +54,7 @@
         android:name="org.openhdp.hdt.ui.fragments.SettingsFragment"
         android:label="SettingsFragment" />
     <fragment
-        android:id="@+id/dashboardFragment"
-        android:name="org.openhdp.hdt.ui.fragments.DashboardFragment"
+        android:id="@+id/trackingFragment"
+        android:name="org.openhdp.hdt.ui.tracking.TrackingFragment"
         android:label="DashboardFragment" />
 </navigation>
