@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
@@ -11,7 +13,9 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_IDLE
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import org.openhdp.hdt.databinding.FragmentDashboardBinding
+import org.openhdp.hdt.databinding.FragmentTrackingBinding
+import org.openhdp.hdt.ui.tracking.addCounter.AddElementBottomSheetFragment
+import org.openhdp.hdt.ui.tracking.addCounter.AddStopwatchViewState
 import timber.log.Timber
 
 
@@ -20,7 +24,7 @@ class TrackingFragment : Fragment() {
 
     private val viewModel: TrackingViewModel by viewModels(ownerProducer = { requireActivity() })
 
-    private lateinit var binding: FragmentDashboardBinding
+    private lateinit var binding: FragmentTrackingBinding
     private lateinit var adapter: DashboardItemsAdapter
 
     override fun onCreateView(
@@ -28,7 +32,7 @@ class TrackingFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentDashboardBinding.inflate(inflater, container, false)
+        binding = FragmentTrackingBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -45,7 +49,14 @@ class TrackingFragment : Fragment() {
 
     private fun setupAddTimerButton() {
         binding.addNewTimer.setOnClickListener {
+            val bottomSheet = AddElementBottomSheetFragment()
+            bottomSheet.listener = object : AddElementBottomSheetFragment.Listener {
 
+                override fun onAdded(item: AddStopwatchViewState) {
+                    viewModel.onCounterAdded(item)
+                }
+            }
+            bottomSheet.show(childFragmentManager, "add_timer")
         }
     }
 
@@ -81,13 +92,18 @@ class TrackingFragment : Fragment() {
 
     private fun renderState(state: TrackingViewState) {
         Timber.d("renderState $state")
+        binding.noStopwatchersPlaceholder.isVisible = state is TrackingViewState.NoStopwatches
         when (state) {
             TrackingViewState.Loading -> {
 
             }
             is TrackingViewState.Results -> {
-                adapter.items = (state.items)
-                adapter.notifyDataSetChanged()
+                adapter.items = state.items
+            }
+            TrackingViewState.NoStopwatches -> {
+            }
+            is TrackingViewState.Error -> {
+                Toast.makeText(requireContext(), state.issue.toString(), Toast.LENGTH_LONG).show()
             }
         }
     }

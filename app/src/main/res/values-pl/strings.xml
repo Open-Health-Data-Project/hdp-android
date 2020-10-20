@@ -5,5 +5,8 @@
     <string name="menu_item_categories">Kategorie</string>
     <string name="menu_item_history">Historia</string>
     <string name="menu_item_settings">Ustawienia</string>
+    <string name="new_counter_label_name">Nazwa</string>
+    <string name="new_counter_label_cancel">Anuluj</string>
+    <string name="new_counter_label_create">Utwórz</string>
 
 </resources>

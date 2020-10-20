@@ -47,7 +47,7 @@
     </fragment>
     <fragment
         android:id="@+id/categoriesListFragment"
-        android:name="org.openhdp.hdt.ui.fragments.CategoriesListFragment"
+        android:name="org.openhdp.hdt.ui.categories.CategoriesListFragment"
         android:label="CategoriesListFragment" />
     <fragment
         android:id="@+id/settingsFragment"

@@ -18,4 +18,7 @@ interface CategoryDAO {
     @Query("SELECT * FROM categories ORDER BY customOrder")
     fun getAllCategoriesInOrder(): LiveData<List<Category>>
 
+    @Query("SELECT * FROM categories ORDER BY customOrder")
+    suspend fun getAllCategoriesOrdered(): List<Category>
+
 }

@@ -22,6 +22,9 @@ interface StopwatchDAO {
     fun getStopwatchCategoryId(id: Int): LiveData<Int>
 
     @Query("SELECT * FROM stopwatches ORDER BY customOrder")
-    fun getAllStopwatchesInOrder(): LiveData<List<Stopwatch>>
+    suspend fun getAllStopwatchesInOrder(): List<Stopwatch>
+
+    @Query("SELECT COUNT() FROM stopwatches")
+    suspend fun getAllStopwatchesCount(): Int
 
 }
