@@ -1,15 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <TextView
+        android:id="@+id/timer_selector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="@drawable/dropdown_background"
+        android:drawableEnd="@drawable/ic_menu_down"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="8dp"
+        android:text="Select timer"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Category" />
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerview_history"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/timer_selector" />
+
+    <TextView
+        android:id="@+id/no_stopwatches"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_margin="16dp"
         android:gravity="center"
-        android:text="history"
-        android:textColor="#000"
-        android:textSize="22sp"
-        android:textStyle="bold|italic" />
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="8dp"
+        android:text="No stopwatches so far"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Category" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

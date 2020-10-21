@@ -22,27 +22,27 @@ object AppModule {
     @Provides
     fun provideDataTrackingDatabase(
         @ApplicationContext app: Context
-    ) = Room.inMemoryDatabaseBuilder(
+    ) = Room.databaseBuilder(
         app,
-        DataTrackingDatabase::class.java
-        /* , DATABASE_NAME*/
-    ).addCallback(object : RoomDatabase.Callback() {
-        override fun onCreate(db: SupportSQLiteDatabase) {
-            super.onCreate(db)
-            Timber.d("onCreate ${db.version}")
-        }
+        DataTrackingDatabase::class.java,
+        DATABASE_NAME
+    ).fallbackToDestructiveMigration()
+        .addCallback(object : RoomDatabase.Callback() {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
+                Timber.d("onCreate ${db.version}")
+            }
 
-        override fun onOpen(db: SupportSQLiteDatabase) {
-            super.onOpen(db)
-            Timber.d("onOpen ${db.version}")
-        }
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                super.onOpen(db)
+                Timber.d("onOpen ${db.version}")
+            }
 
-        override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
-            super.onDestructiveMigration(db)
-            Timber.d("onDestructiveMigration ${db.version}")
-        }
-    })
-        .build()
+            override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
+                super.onDestructiveMigration(db)
+                Timber.d("onDestructiveMigration ${db.version}")
+            }
+        }).build()
 
     @Singleton
     @Provides

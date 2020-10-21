@@ -6,11 +6,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
-import org.openhdp.hdt.R
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.dao.CategoryDAO
+import org.openhdp.hdt.data.dao.TimestampDAO
 import org.openhdp.hdt.data.entities.Category
 import org.openhdp.hdt.data.entities.Stopwatch
+import org.openhdp.hdt.data.entities.Timestamp
 import org.openhdp.hdt.ui.tracking.addCounter.AddStopwatchViewState
 import timber.log.Timber
 import java.util.*
@@ -19,8 +20,9 @@ import kotlin.collections.ArrayList
 
 
 class TrackingViewModel @ViewModelInject constructor(
-    val stopwatchRepository: StopwatchRepository,
-    val categoryDAO: CategoryDAO
+    private val stopwatchRepository: StopwatchRepository,
+    private val categoryDAO: CategoryDAO,
+    private val timestampDAO: TimestampDAO
 ) : ViewModel(), OnItemClickListener {
 
     private val _viewState = MutableLiveData<TrackingViewState>()
@@ -29,6 +31,10 @@ class TrackingViewModel @ViewModelInject constructor(
         get() = _viewState
 
     private var job: Job? = null
+
+    private val transactionJobs = arrayListOf<Job>()
+
+    private fun Job.pick() = transactionJobs.add(this)
 
     fun initialize() {
         viewModelScope.launch(Dispatchers.Main) {
@@ -44,22 +50,58 @@ class TrackingViewModel @ViewModelInject constructor(
                     _viewState.value = TrackingViewState.NoStopwatches
                 } else {
                     _viewState.value = TrackingViewState.Results(ArrayList(stopwatches))
-
+                    countdown()
                 }
             }
-        }
-        _viewState.value = TrackingViewState.NoStopwatches
+        }.pick()
     }
 
-    private fun Stopwatch.asTrackingItem(categories: List<Category>): TrackingItem? {
+    private suspend fun Stopwatch.asTrackingItem(categories: List<Category>): TrackingItem? {
         try {
+            val stopWatchId = this.id
             val category = categories.firstOrNull { this.categoryId == it.id } ?: return null
+
+            val currentTime = Date().time
+            var totalTime = 0L
+            var stopWatchRunning = false
+
+            val timestamps = timestampDAO.getTimestampsFrom(stopWatchId)
+            val lastIndex = timestamps.lastIndex
+            timestamps.forEachIndexed { index, it ->
+                val stopTime = it.stopTime
+                if (stopTime == null) {
+                    if (index != lastIndex) {
+                        Timber.e("this is weird")
+                    }
+                    Timber.e("timestamp ${this.id} index $index timestamp end is null / ${it.startTime}")
+                } else {
+                    Timber.w(
+                        "timestamp ${this.id} index $index timestamp diff is ${
+                            kotlin.math.abs(
+                                stopTime - it.startTime
+                            )
+                        } / ${it.startTime}"
+                    )
+                }
+                if (stopTime != null) {
+                    //timer was paused before
+                    totalTime += kotlin.math.abs(stopTime - it.startTime)
+                } else {
+//                    val timeoutInMillis = TimeUnit.HOURS.toMillis(16L)
+//                    val lastActivityDurationTillNow = kotlin.math.abs(currentTime - it.startTime)
+                    totalTime += kotlin.math.abs(currentTime - it.startTime)
+                    if (timestamps.lastIndex == index) {
+                        stopWatchRunning = true
+                    } //make it still running
+                }
+            }
+
             return TrackingItem(
-                id.toString(),
+                id,
                 name,
                 category.name,
-                Date().time,
-                TrackState.INACTIVE,
+                totalTime,
+                buttonState = PlaybackButtonState(if (stopWatchRunning) TrackState.ACTIVE else TrackState.INACTIVE),
                 category.color
             )
         } catch (throwable: Throwable) {
@@ -68,10 +110,16 @@ class TrackingViewModel @ViewModelInject constructor(
         }
     }
 
+    private suspend fun stopCountdown() {
+        runCatching { job?.cancelAndJoin() }.onFailure {
+            Timber.d("failed cancel job")
+        }
+    }
+
     private fun countdown() {
-        job?.cancel()
+        runBlocking { stopCountdown() }
         val oneSec = TimeUnit.SECONDS.toMillis(1)
-        job = viewModelScope.async(Dispatchers.Main) {
+        job = viewModelScope.launch(Dispatchers.Main) {
             while (true) {
                 delay(oneSec)
                 tick(oneSec)
@@ -81,21 +129,30 @@ class TrackingViewModel @ViewModelInject constructor(
 
     private fun tick(duration: Long) {
         onState<TrackingViewState.Results> { currentState ->
-            val items = currentState.items
-            val updatedItems = arrayListOf<TrackingItem>()
-            for (item in items) {
-                if (item.isRunning()) {
-                    updatedItems.add(item.copy(timestamp = item.timestamp + duration))
+            val updatedItems = currentState.items.map {
+                if (it.isRunning()) {
+                    it.copy(millisTracked = it.millisTracked + duration)
                 } else {
-                    updatedItems.add(item)
+                    it
                 }
             }
-            currentState.copy(items = updatedItems)
+            currentState.copy(items = ArrayList(updatedItems))
         }
     }
 
     override fun onCleared() {
-        job?.cancel()
+        GlobalScope.launch {
+
+            transactionJobs.forEach {
+                if (it.isActive) {
+                    runCatching { it.cancelAndJoin() }.onFailure {
+                        Timber.d("error join job $it")
+                    }
+                }
+            }
+            transactionJobs.clear()
+            stopCountdown()
+        }
         super.onCleared()
     }
 
@@ -107,10 +164,69 @@ class TrackingViewModel @ViewModelInject constructor(
         }
     }
 
+
     override fun toggleTimer(item: TrackingItem) {
+        Timber.d("toggle timer, current state is ${item.buttonState.trackState.name}")
+
         onState<TrackingViewState.Results> { state ->
             val currentItems = state.items
-            val currentItemIndex = currentItems.indexOfFirst { it.id == item.id }
+            val currentItemIndex =
+                currentItems.indexOfFirst { it.stopWatchId == item.stopWatchId }
+            if (currentItemIndex != -1) {
+                currentItems[currentItemIndex] =
+                    item.copy(buttonState = item.buttonState.copy(isEnabled = false))
+                state.copy(items = currentItems)
+            } else {
+                state
+            }
+        }
+
+        viewModelScope.launch(Dispatchers.Main) {
+            val toggleTime = Date().time
+
+            runCatching {
+                val timestamp = timestampDAO.lastTimestampOf(item.stopWatchId)
+                if (timestamp != null && timestamp.stopTime == null) {
+                    timestampDAO.updateTimestamp(timestamp.id, toggleTime)
+                    TrackState.INACTIVE
+                } else {
+                    timestampDAO.createTimestamp(
+                        Timestamp(
+                            item.stopWatchId,
+                            toggleTime
+                        )
+                    )
+                    TrackState.ACTIVE
+                }
+            }
+                .onFailure {
+                    Timber.e(it, "failed to update item due to issue $it")
+                }.onSuccess { trackState ->
+
+                    onState<TrackingViewState.Results> { state ->
+                        val currentItems = state.items
+                        val currentItemIndex =
+                            currentItems.indexOfFirst { it.stopWatchId == item.stopWatchId }
+                        if (currentItemIndex != -1) {
+                            currentItems[currentItemIndex] =
+                                item.copy(
+                                    buttonState = item.buttonState.copy(
+                                        isEnabled = true,
+                                        trackState = trackState
+                                    )
+                                )
+                            state.copy(items = currentItems)
+                        } else {
+                            state
+                        }
+                    }
+                }
+        }.pick()
+
+
+        onState<TrackingViewState.Results> { state ->
+            val currentItems = state.items
+            val currentItemIndex = currentItems.indexOfFirst { it.stopWatchId == item.stopWatchId }
             if (currentItemIndex != -1) {
                 currentItems[currentItemIndex] = item.toggled()
                 state.copy(items = currentItems)
@@ -128,8 +244,8 @@ class TrackingViewModel @ViewModelInject constructor(
         Timber.d("reorder $firstItem <-> $otherItem")
         onState<TrackingViewState.Results> { state ->
             val items = state.items
-            val firstIndex = items.indexOfFirst { it.id == firstItem.id }
-            val secondIndex = items.indexOfFirst { it.id == otherItem.id }
+            val firstIndex = items.indexOfFirst { it.stopWatchId == firstItem.stopWatchId }
+            val secondIndex = items.indexOfFirst { it.stopWatchId == otherItem.stopWatchId }
             if (firstIndex != -1 && secondIndex != -1) {
                 items[firstIndex] = otherItem
                 items[secondIndex] = firstItem
@@ -152,6 +268,7 @@ class TrackingViewModel @ViewModelInject constructor(
         val selectedCategoryId = item.categories.firstOrNull { it.selected }?.category?.id ?: return
 
         viewModelScope.launch(Dispatchers.Main) {
+            stopCountdown()
             runCatching {
                 val count = stopwatchRepository.stopwatchDAO.getAllStopwatchesCount()
                 val stopwatch = Stopwatch(count + 1, item.name, selectedCategoryId)
@@ -162,6 +279,6 @@ class TrackingViewModel @ViewModelInject constructor(
             }.onSuccess {
                 initialize()
             }
-        }
+        }.pick()
     }
 }

@@ -4,11 +4,10 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import org.openhdp.hdt.data.entities.Stopwatch
 
 @Entity(
     tableName = "timestamps",
-    indices = [Index(value = ["stopwatchId"], unique = true)],
+    indices = [Index(value = ["stopwatchId"], unique = false)],
     foreignKeys = [ForeignKey(
         entity = Stopwatch::class,
         parentColumns = arrayOf("id"),
@@ -17,10 +16,10 @@ import org.openhdp.hdt.data.entities.Stopwatch
     )]
 )
 data class Timestamp(
-    var stopwatchId: Int,
-    var startTime: Long
+    val stopwatchId: String,
+    val startTime: Long,
+    @PrimaryKey(autoGenerate = false)
+    val id: String = java.util.UUID.randomUUID().toString()
 ) {
-    @PrimaryKey(autoGenerate = true)
-    var id: Int? = null
     var stopTime: Long? = null
 }

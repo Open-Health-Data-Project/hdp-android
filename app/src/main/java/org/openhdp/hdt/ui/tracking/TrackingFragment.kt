@@ -22,7 +22,7 @@ import timber.log.Timber
 @AndroidEntryPoint
 class TrackingFragment : Fragment() {
 
-    private val viewModel: TrackingViewModel by viewModels(ownerProducer = { requireActivity() })
+    private val viewModel: TrackingViewModel by viewModels()
 
     private lateinit var binding: FragmentTrackingBinding
     private lateinit var adapter: DashboardItemsAdapter
@@ -61,7 +61,7 @@ class TrackingFragment : Fragment() {
     }
 
     private fun setupGridView() {
-        val touchHelper = ItemTouchHelper(itemTouchCallback())
+        //val touchHelper = ItemTouchHelper(itemTouchCallback())
 
         adapter = DashboardItemsAdapter().apply {
             listener = object : OnItemClickListener {
@@ -75,27 +75,24 @@ class TrackingFragment : Fragment() {
             }
             dragChangeListener = object : OnDragChangeListener {
                 override fun onStartDrag(viewHolder: RecyclerView.ViewHolder) {
-                    viewModel.onDragStarted()
-                    touchHelper.startDrag(viewHolder)
+                    //viewModel.onDragStarted()
+                    //touchHelper.startDrag(viewHolder)
                 }
 
                 override fun onEndDrag() {
-                    viewModel.onDragEnded()
+                    //viewModel.onDragEnded()
                 }
             }
         }
-        touchHelper.attachToRecyclerView(binding.recyclerView)
+        //touchHelper.attachToRecyclerView(binding.recyclerView)
         binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         binding.recyclerView.adapter = adapter
-
     }
 
     private fun renderState(state: TrackingViewState) {
-        Timber.d("renderState $state")
         binding.noStopwatchersPlaceholder.isVisible = state is TrackingViewState.NoStopwatches
         when (state) {
             TrackingViewState.Loading -> {
-
             }
             is TrackingViewState.Results -> {
                 adapter.items = state.items
@@ -103,6 +100,7 @@ class TrackingFragment : Fragment() {
             TrackingViewState.NoStopwatches -> {
             }
             is TrackingViewState.Error -> {
+                Timber.e("${state.issue} initialize() failure ")
                 Toast.makeText(requireContext(), state.issue.toString(), Toast.LENGTH_LONG).show()
             }
         }
@@ -130,7 +128,7 @@ class TrackingFragment : Fragment() {
             Timber.w("onMove $viewHolder, $target")
             val firstItem = viewHolder.asDashboardItem() ?: return false
             val otherItem = target.asDashboardItem() ?: return false
-            viewModel.reorder(firstItem, otherItem)
+            // viewModel.reorder(firstItem, otherItem)
             return true
         }
 
