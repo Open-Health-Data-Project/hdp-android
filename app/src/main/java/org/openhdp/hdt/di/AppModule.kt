@@ -2,6 +2,8 @@ package org.openhdp.hdt.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -9,6 +11,7 @@ import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.openhdp.hdt.data.DataTrackingDatabase
 import org.openhdp.hdt.other.Constants.DATABASE_NAME
+import timber.log.Timber
 import javax.inject.Singleton
 
 @Module
@@ -19,11 +22,27 @@ object AppModule {
     @Provides
     fun provideDataTrackingDatabase(
         @ApplicationContext app: Context
-    ) = Room.databaseBuilder(
+    ) = Room.inMemoryDatabaseBuilder(
         app,
-        DataTrackingDatabase::class.java,
-        DATABASE_NAME
-    ).build()
+        DataTrackingDatabase::class.java
+        /* , DATABASE_NAME*/
+    ).addCallback(object : RoomDatabase.Callback() {
+        override fun onCreate(db: SupportSQLiteDatabase) {
+            super.onCreate(db)
+            Timber.d("onCreate ${db.version}")
+        }
+
+        override fun onOpen(db: SupportSQLiteDatabase) {
+            super.onOpen(db)
+            Timber.d("onOpen ${db.version}")
+        }
+
+        override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
+            super.onDestructiveMigration(db)
+            Timber.d("onDestructiveMigration ${db.version}")
+        }
+    })
+        .build()
 
     @Singleton
     @Provides
@@ -31,7 +50,8 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideCategoryWithStopwatchesDAO(db: DataTrackingDatabase) = db.getCategoryWithStopwatchesDAO()
+    fun provideCategoryWithStopwatchesDAO(db: DataTrackingDatabase) =
+        db.getCategoryWithStopwatchesDAO()
 
     @Singleton
     @Provides
@@ -47,11 +67,13 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideStopwatchWithDailyChangedDurationDAO(db: DataTrackingDatabase) = db.getStopwatchWithDailyChangedDurationDAO()
+    fun provideStopwatchWithDailyChangedDurationDAO(db: DataTrackingDatabase) =
+        db.getStopwatchWithDailyChangedDurationDAO()
 
     @Singleton
     @Provides
-    fun provideStopwatchWithTimestampsDAO(db: DataTrackingDatabase) = db.getStopwatchWithTimestampsDAO()
+    fun provideStopwatchWithTimestampsDAO(db: DataTrackingDatabase) =
+        db.getStopwatchWithTimestampsDAO()
 
     @Singleton
     @Provides

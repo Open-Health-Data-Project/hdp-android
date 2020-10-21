@@ -5,7 +5,6 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.openhdp.hdt.R
 import org.openhdp.hdt.ui.viewmodels.AddElementViewModel
-import org.openhdp.hdt.ui.viewmodels.MainViewModel
 
 @AndroidEntryPoint
 class AddElementFragment : Fragment(R.layout.fragment_add_element) {

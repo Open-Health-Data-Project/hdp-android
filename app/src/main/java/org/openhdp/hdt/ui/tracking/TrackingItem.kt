@@ -1,6 +1,6 @@
 package org.openhdp.hdt.ui.tracking
 
-import androidx.annotation.ColorRes
+import androidx.annotation.ColorInt
 
 
 data class TrackingItem(
@@ -9,7 +9,7 @@ data class TrackingItem(
     val description: String,
     val timestamp: Long,
     val state: TrackState,
-    @ColorRes val color: Int
+    @ColorInt val color: Int
 ) {
     fun toggled(): TrackingItem {
         val newState = if (state == TrackState.ACTIVE) {

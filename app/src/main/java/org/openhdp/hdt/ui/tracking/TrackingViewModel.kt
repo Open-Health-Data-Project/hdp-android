@@ -8,13 +8,19 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import org.openhdp.hdt.R
 import org.openhdp.hdt.data.StopwatchRepository
+import org.openhdp.hdt.data.dao.CategoryDAO
+import org.openhdp.hdt.data.entities.Category
+import org.openhdp.hdt.data.entities.Stopwatch
+import org.openhdp.hdt.ui.tracking.addCounter.AddStopwatchViewState
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 
 
 class TrackingViewModel @ViewModelInject constructor(
-    val stopwatchRepository: StopwatchRepository
+    val stopwatchRepository: StopwatchRepository,
+    val categoryDAO: CategoryDAO
 ) : ViewModel(), OnItemClickListener {
 
     private val _viewState = MutableLiveData<TrackingViewState>()
@@ -24,43 +30,42 @@ class TrackingViewModel @ViewModelInject constructor(
 
     private var job: Job? = null
 
-    fun midnight() = Date().apply {
-        seconds = 0
-        minutes = 0
-        hours = 0
+    fun initialize() {
+        viewModelScope.launch(Dispatchers.Main) {
+            runCatching {
+                val stopwatches = stopwatchRepository.stopwatchDAO.getAllStopwatchesInOrder()
+                val categories = categoryDAO.getAllCategoriesOrdered()
+                stopwatches.mapNotNull { it.asTrackingItem(categories) }
+            }.onFailure {
+                Timber.e(it, "initialize() failure ")
+                _viewState.value = TrackingViewState.Error(it)
+            }.onSuccess { stopwatches ->
+                if (stopwatches.isEmpty()) {
+                    _viewState.value = TrackingViewState.NoStopwatches
+                } else {
+                    _viewState.value = TrackingViewState.Results(ArrayList(stopwatches))
+
+                }
+            }
+        }
+        _viewState.value = TrackingViewState.NoStopwatches
     }
 
-    fun initialize() {
-        _viewState.value = TrackingViewState.Results(
-            arrayListOf(
-                TrackingItem(
-                    "0",
-                    "Netflix",
-                    "",
-                    midnight().time + TimeUnit.HOURS.toMillis(2),
-                    TrackState.INACTIVE,
-                    R.color.colorAccent
-                ),
-                TrackingItem(
-                    "1",
-                    "spacer",
-                    "",
-                    midnight().time + TimeUnit.HOURS.toMillis(1),
-                    TrackState.ACTIVE,
-                    R.color.colorYellow
-                ),
-                TrackingItem(
-                    "2",
-                    "angielski",
-                    "",
-                    midnight().time,
-                    TrackState.ACTIVE,
-                    R.color.colorOrange
-                )
+    private fun Stopwatch.asTrackingItem(categories: List<Category>): TrackingItem? {
+        try {
+            val category = categories.firstOrNull { this.categoryId == it.id } ?: return null
+            return TrackingItem(
+                id.toString(),
+                name,
+                category.name,
+                Date().time,
+                TrackState.INACTIVE,
+                category.color
             )
-        )
-
-        countdown()
+        } catch (throwable: Throwable) {
+            Timber.e(throwable, "failed to map to tracking item")
+            return null
+        }
     }
 
     private fun countdown() {
@@ -133,7 +138,6 @@ class TrackingViewModel @ViewModelInject constructor(
                 state
             }
         }
-        countdown()
     }
 
     fun onDragStarted() {
@@ -141,7 +145,23 @@ class TrackingViewModel @ViewModelInject constructor(
     }
 
     fun onDragEnded() {
-        // TODO: advance the timers by the time when ticker was off due to dragging
-        countdown()
+
+    }
+
+    fun onCounterAdded(item: AddStopwatchViewState) {
+        val selectedCategoryId = item.categories.firstOrNull { it.selected }?.category?.id ?: return
+
+        viewModelScope.launch(Dispatchers.Main) {
+            runCatching {
+                val count = stopwatchRepository.stopwatchDAO.getAllStopwatchesCount()
+                val stopwatch = Stopwatch(count + 1, item.name, selectedCategoryId)
+                stopwatchRepository.stopwatchDAO.createStopwatch(stopwatch)
+            }.onFailure {
+                Timber.e(it, "onCounterAdded($item) failure ")
+                _viewState.postValue(TrackingViewState.Error(it))
+            }.onSuccess {
+                initialize()
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ package org.openhdp.hdt.ui.tracking
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.view.*
+import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -12,10 +13,6 @@ import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
 import org.openhdp.hdt.R
 import org.openhdp.hdt.databinding.ItemTimerBinding
-import java.text.SimpleDateFormat
-import java.util.*
-
-private val DATE_FORMAT = SimpleDateFormat("HH:mm:ss", Locale.ROOT)
 
 interface OnItemClickListener {
     fun toggleTimer(item: TrackingItem)
@@ -31,7 +28,11 @@ class DashboardItemsAdapter : RecyclerView.Adapter<DashboardItemViewHolder>() {
 
     var dragChangeListener: OnDragChangeListener? = null
     var listener: OnItemClickListener? = null
-    var items = listOf<TrackingItem>()
+    var items: List<TrackingItem> = emptyList()
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DashboardItemViewHolder {
         val binding = ItemTimerBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -62,16 +63,16 @@ class DashboardItemViewHolder(
         bindButtons(item, listener)
         binding.root.setOnTouchListener(wrapDragChanges(dragChangeListener))
         binding.timerName.text = item.name
-        val date = Date().apply { time = item.timestamp }
-        binding.timerTime.text = DATE_FORMAT.format(date.time)
+
+        binding.timerTime.text = "0:00:00"
     }
 
-    private fun makeRoundedCorners(@ColorRes color: Int) {
+    private fun makeRoundedCorners(@ColorInt color: Int) {
         val radius = itemView.resources.getDimension(R.dimen.cardview_corner_size)
         binding.root.setupCorners(R.color.white) {
             setAllCorners(CornerFamily.ROUNDED, radius)
         }
-        binding.timerName.setupCorners(color) {
+        binding.timerName.setupCornersWithColor(color) {
             setTopLeftCorner(CornerFamily.ROUNDED, radius)
             setTopRightCorner(CornerFamily.ROUNDED, radius)
         }
@@ -84,8 +85,7 @@ class DashboardItemViewHolder(
             R.drawable.ic_play
         }
         binding.playOrPause.setImageResource(icon)
-        val context = itemView.context
-        val tintList = ColorStateList.valueOf(ContextCompat.getColor(context, item.color))
+        val tintList = ColorStateList.valueOf(item.color)
         binding.playOrPause.backgroundTintList = tintList
         binding.playOrPause.setOnClickListener {
             listener?.toggleTimer(item)
@@ -125,10 +125,18 @@ fun View.setupCorners(
     @ColorRes colorRes: Int,
     block: ShapeAppearanceModel.Builder.() -> Unit
 ) {
+    val color = ContextCompat.getColor(context, colorRes)
+    setupCornersWithColor(color, block)
+}
+
+fun View.setupCornersWithColor(
+    @ColorInt color: Int,
+    block: ShapeAppearanceModel.Builder.() -> Unit
+) {
     val shapeAppearanceModel = ShapeAppearanceModel()
         .toBuilder().apply(block)
         .build()
     val shapeDrawable = MaterialShapeDrawable(shapeAppearanceModel)
-    shapeDrawable.fillColor = ContextCompat.getColorStateList(context, colorRes)
+    shapeDrawable.fillColor = ColorStateList.valueOf(color)
     ViewCompat.setBackground(this, shapeDrawable)
 }

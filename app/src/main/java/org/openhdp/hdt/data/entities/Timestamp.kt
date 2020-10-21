@@ -6,17 +6,21 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import org.openhdp.hdt.data.entities.Stopwatch
 
-@Entity(tableName = "timestamps",
+@Entity(
+    tableName = "timestamps",
     indices = [Index(value = ["stopwatchId"], unique = true)],
-    foreignKeys = [ForeignKey(entity = Stopwatch::class,
+    foreignKeys = [ForeignKey(
+        entity = Stopwatch::class,
         parentColumns = arrayOf("id"),
         childColumns = arrayOf("stopwatchId"),
-        onDelete = ForeignKey.CASCADE)]
+        onDelete = ForeignKey.CASCADE
+    )]
 )
 data class Timestamp(
     var stopwatchId: Int,
-    var startTime: Int
-){
-    @PrimaryKey(autoGenerate = true) var id: Int? = null
-    var stopTime: Int? = null
+    var startTime: Long
+) {
+    @PrimaryKey(autoGenerate = true)
+    var id: Int? = null
+    var stopTime: Long? = null
 }
