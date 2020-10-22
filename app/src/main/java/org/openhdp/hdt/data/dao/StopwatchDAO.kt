@@ -6,7 +6,7 @@ import org.openhdp.hdt.data.entities.Stopwatch
 
 @Dao
 interface StopwatchDAO {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun createStopwatch(stopwatch: Stopwatch)
 
     @Update
@@ -15,7 +15,7 @@ interface StopwatchDAO {
     @Delete
     suspend fun deleteStopwatch(stopwatch: Stopwatch)
 
-    @Query("SELECT name FROM stopwatches WHERE id=:id ")
+    @Query("SELECT name FROM stopwatches WHERE id=:id")
     fun getStopwatchName(id: Int): LiveData<String>
 
     @Query("SELECT categoryId FROM stopwatches WHERE id=:id ")

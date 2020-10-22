@@ -35,7 +35,7 @@
     </fragment>
     <fragment
         android:id="@+id/historyFragment"
-        android:name="org.openhdp.hdt.ui.fragments.HistoryFragment"
+        android:name="org.openhdp.hdt.ui.history.HistoryFragment"
         android:label="HistoryFragment" />
     <fragment
         android:id="@+id/categoriesDetailFragment"

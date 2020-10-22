@@ -4,19 +4,22 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import org.openhdp.hdt.data.entities.Category
 
-@Entity(tableName = "stopwatches",
-    indices = [Index(value = ["categoryId"], unique = true)],
-    foreignKeys = [ForeignKey(entity = Category::class,
+
+@Entity(
+    tableName = "stopwatches",
+    indices = [Index(value = ["categoryId"], unique = false)],
+    foreignKeys = [ForeignKey(
+        entity = Category::class,
         parentColumns = arrayOf("id"),
         childColumns = arrayOf("categoryId"),
-        onDelete = ForeignKey.CASCADE)]
+        onDelete = ForeignKey.CASCADE
+    )]
 )
 data class Stopwatch(
     var customOrder: Int,
     var name: String,
-    var categoryId: Int
-){
-    @PrimaryKey(autoGenerate = true) var id: Int? = null
-}
+    var categoryId: Int,
+    @PrimaryKey
+    val id: String = java.util.UUID.randomUUID().toString()
+)

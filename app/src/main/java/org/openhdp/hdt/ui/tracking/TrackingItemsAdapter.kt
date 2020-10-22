@@ -2,6 +2,7 @@ package org.openhdp.hdt.ui.tracking
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.*
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
@@ -13,6 +14,7 @@ import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
 import org.openhdp.hdt.R
 import org.openhdp.hdt.databinding.ItemTimerBinding
+import java.util.concurrent.TimeUnit
 
 interface OnItemClickListener {
     fun toggleTimer(item: TrackingItem)
@@ -64,7 +66,15 @@ class DashboardItemViewHolder(
         binding.root.setOnTouchListener(wrapDragChanges(dragChangeListener))
         binding.timerName.text = item.name
 
-        binding.timerTime.text = "0:00:00"
+        formatElapsedTime(item.millisTracked)
+    }
+
+    fun formatElapsedTime(millis: Long) {
+        val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(millis)
+        val minutes = totalSeconds / 60
+        val hours = totalSeconds / 3600
+        binding.timerTime.text =
+            String.format("%02d:%02d:%02d", hours, minutes.rem(60), totalSeconds.rem(60))
     }
 
     private fun makeRoundedCorners(@ColorInt color: Int) {
@@ -79,17 +89,24 @@ class DashboardItemViewHolder(
     }
 
     private fun bindButtons(item: TrackingItem, listener: OnItemClickListener?) {
-        val icon = if (item.state == TrackState.ACTIVE) {
+        val icon = if (item.buttonState.trackState == TrackState.ACTIVE) {
             R.drawable.ic_pause
         } else {
             R.drawable.ic_play
         }
-        binding.playOrPause.setImageResource(icon)
-        val tintList = ColorStateList.valueOf(item.color)
+        val tintList = if (item.buttonState.isEnabled) {
+            ColorStateList.valueOf(item.color)
+        } else {
+            ColorStateList.valueOf(Color.DKGRAY)
+        }
         binding.playOrPause.backgroundTintList = tintList
+        binding.playOrPause.isEnabled = item.buttonState.isEnabled
+        binding.playOrPause.setImageResource(icon)
+
         binding.playOrPause.setOnClickListener {
             listener?.toggleTimer(item)
         }
+        binding.history.isEnabled = item.buttonState.isEnabled
         binding.history.backgroundTintList = tintList
         binding.history.setOnClickListener {
             listener?.onSettingsClick(item)
