@@ -4,7 +4,7 @@ import androidx.annotation.ColorInt
 
 
 data class TrackingItem(
-    val stopWatchId: String,
+    val stopwatchId: String,
     val name: String,
     val description: String,
     val millisTracked: Long,

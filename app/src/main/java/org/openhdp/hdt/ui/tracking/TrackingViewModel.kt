@@ -171,7 +171,7 @@ class TrackingViewModel @ViewModelInject constructor(
         onState<TrackingViewState.Results> { state ->
             val currentItems = state.items
             val currentItemIndex =
-                currentItems.indexOfFirst { it.stopWatchId == item.stopWatchId }
+                currentItems.indexOfFirst { it.stopwatchId == item.stopwatchId }
             if (currentItemIndex != -1) {
                 currentItems[currentItemIndex] =
                     item.copy(buttonState = item.buttonState.copy(isEnabled = false))
@@ -185,14 +185,14 @@ class TrackingViewModel @ViewModelInject constructor(
             val toggleTime = Date().time
 
             runCatching {
-                val timestamp = timestampDAO.lastTimestampOf(item.stopWatchId)
+                val timestamp = timestampDAO.lastTimestampOf(item.stopwatchId)
                 if (timestamp != null && timestamp.stopTime == null) {
                     timestampDAO.updateTimestamp(timestamp.id, toggleTime)
                     TrackState.INACTIVE
                 } else {
                     timestampDAO.createTimestamp(
                         Timestamp(
-                            item.stopWatchId,
+                            item.stopwatchId,
                             toggleTime
                         )
                     )
@@ -206,7 +206,7 @@ class TrackingViewModel @ViewModelInject constructor(
                     onState<TrackingViewState.Results> { state ->
                         val currentItems = state.items
                         val currentItemIndex =
-                            currentItems.indexOfFirst { it.stopWatchId == item.stopWatchId }
+                            currentItems.indexOfFirst { it.stopwatchId == item.stopwatchId }
                         if (currentItemIndex != -1) {
                             currentItems[currentItemIndex] =
                                 item.copy(
@@ -226,7 +226,7 @@ class TrackingViewModel @ViewModelInject constructor(
 
         onState<TrackingViewState.Results> { state ->
             val currentItems = state.items
-            val currentItemIndex = currentItems.indexOfFirst { it.stopWatchId == item.stopWatchId }
+            val currentItemIndex = currentItems.indexOfFirst { it.stopwatchId == item.stopwatchId }
             if (currentItemIndex != -1) {
                 currentItems[currentItemIndex] = item.toggled()
                 state.copy(items = currentItems)
@@ -244,8 +244,8 @@ class TrackingViewModel @ViewModelInject constructor(
         Timber.d("reorder $firstItem <-> $otherItem")
         onState<TrackingViewState.Results> { state ->
             val items = state.items
-            val firstIndex = items.indexOfFirst { it.stopWatchId == firstItem.stopWatchId }
-            val secondIndex = items.indexOfFirst { it.stopWatchId == otherItem.stopWatchId }
+            val firstIndex = items.indexOfFirst { it.stopwatchId == firstItem.stopwatchId }
+            val secondIndex = items.indexOfFirst { it.stopwatchId == otherItem.stopwatchId }
             if (firstIndex != -1 && secondIndex != -1) {
                 items[firstIndex] = otherItem
                 items[secondIndex] = firstItem
