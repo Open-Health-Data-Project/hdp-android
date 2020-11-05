@@ -9,10 +9,9 @@ sealed class HistoryViewState {
 
     object NoStopwatchesSoFar : HistoryViewState()
 
-
     data class Error(val throwable: Throwable) : HistoryViewState()
 
-    data class NoStopwatchesTimestampsSoFar(val stopwatch: Stopwatch) : HistoryViewState()
+    data class NoStopwatchTimestampsSoFar(val stopwatch: Stopwatch) : HistoryViewState()
 
     data class Stopwatches(val stopwatches: List<Stopwatch>) : HistoryViewState()
 

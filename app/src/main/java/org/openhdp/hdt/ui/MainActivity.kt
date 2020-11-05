@@ -2,7 +2,6 @@ package org.openhdp.hdt.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
@@ -33,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         setupNavigation()
 
         sendCommandToService(ACTION_START_SERVICE, 10)
+
     }
 
     private fun setupNavigation() {

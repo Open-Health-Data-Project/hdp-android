@@ -1,7 +1,5 @@
 package org.openhdp.hdt.ui.history
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,8 +12,7 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.databinding.FragmentHistoryBinding
-import timber.log.Timber
-import java.text.SimpleDateFormat
+import org.openhdp.hdt.showText
 
 @AndroidEntryPoint
 class HistoryFragment : Fragment() {
@@ -28,7 +25,6 @@ class HistoryFragment : Fragment() {
 
     lateinit var binding: FragmentHistoryBinding
 
-    private val EXPORT_REQ_CODE = 2
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,88 +45,38 @@ class HistoryFragment : Fragment() {
         viewModel.initialize()
     }
 
-    private fun renderState(state: HistoryViewState) {
+    private fun renderState(state: HistoryViewState): Any {
         binding.noStopwatches.isVisible = state is HistoryViewState.NoStopwatchesSoFar
-        when (state) {
-            HistoryViewState.Loading -> {
 
+        binding.progress.isVisible = state is HistoryViewState.Loading
+
+        return when (state) {
+            HistoryViewState.Loading -> {
             }
             HistoryViewState.NoStopwatchesSoFar -> {
-
+                requireActivity().showText("No stopwatches so far")
             }
             is HistoryViewState.Stopwatches -> {
-                binding.exportButton.isEnabled = false
                 binding.timerSelector.setOnClickListener {
-                    onClick(it, state.stopwatches)
+                    onDropdownClick(it, state.stopwatches)
                 }
             }
-            is HistoryViewState.NoStopwatchesTimestampsSoFar -> {
-                binding.exportButton.isEnabled = false
-
+            is HistoryViewState.NoStopwatchTimestampsSoFar -> {
                 binding.timerSelector.text = state.stopwatch.name
                 adapter.submitList(emptyList())
-                Toast.makeText(
-                    requireActivity().applicationContext,
-                    "No timestamps so far",
-                    Toast.LENGTH_SHORT
-                ).show()
+                requireActivity().showText("No timestamps so far")
             }
             is HistoryViewState.StopwatchesResult -> {
                 binding.timerSelector.text = state.stopwatch.name
                 adapter.submitList(state.timestamps)
-                binding.exportButton.isEnabled = true
-                binding.exportButton.setOnClickListener { button ->
-                    //viewModel.onExportClick(state.stopwatch)
-                    fileExport(state.stopwatch)
-                }
             }
             is HistoryViewState.Error -> {
-
+                requireActivity().showText("Error ${state.throwable}")
             }
         }
     }
 
-    private fun fileExport(stopwatch: Stopwatch) {
-        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
-        intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.type = "text/csv"
-        intent.putExtra(Intent.EXTRA_TITLE, "export_${stopwatch.name}")
-        startActivityForResult(intent, EXPORT_REQ_CODE)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
-        super.onActivityResult(requestCode, resultCode, resultData)
-
-        val fileUri = resultData?.data
-        if (fileUri != null && requestCode == EXPORT_REQ_CODE) {
-            val stopWatchName = viewModel.doExport(fileUri)
-            Toast.makeText(requireActivity(), "CSV saved!", Toast.LENGTH_SHORT).show()
-
-            if (stopWatchName != null) {
-                fileUri.share(stopWatchName)
-            }
-        } else {
-            Timber.d("uri is null...")
-        }
-    }
-
-    private fun Uri.share(stopwatchName: String) {
-        val intentShareFile = Intent(Intent.ACTION_SEND)
-        intentShareFile.type = "text/csv";
-        intentShareFile.putExtra(Intent.EXTRA_STREAM, this)
-
-        intentShareFile.putExtra(
-            Intent.EXTRA_SUBJECT,
-            "Sharing OHDP - \'$stopwatchName\' stopwatch data"
-        );
-        intentShareFile.putExtra(
-            Intent.EXTRA_TEXT,
-            "Hello, I'd like to share new timestamps regarding stopwatch \'$stopwatchName\'"
-        )
-        startActivity(Intent.createChooser(intentShareFile, "Share CSV"));
-    }
-
-    private fun onClick(button: View, stopwatches: List<Stopwatch>) {
+    private fun onDropdownClick(button: View, stopwatches: List<Stopwatch>) {
         popupMenu?.dismiss()
         val menu = PopupMenu(button.context, button)
         stopwatches.forEach { stopwatch ->

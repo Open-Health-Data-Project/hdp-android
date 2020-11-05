@@ -13,5 +13,10 @@ class StopwatchRepository @Inject constructor(
     val stopwatchWithTimestampsDAO: StopwatchWithTimestampsDAO,
     val timestampDAO: TimestampDAO
 ) {
-    // TODO(Add all functions from DAOs)
+
+
+    suspend fun stopwatches() = stopwatchDAO.getAllStopwatchesInOrder()
+
+    suspend fun timestamps(stopwatchId: String) = timestampDAO.getTimestampsFrom(stopwatchId)
+
 }

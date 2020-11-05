@@ -1,24 +1,18 @@
 package org.openhdp.hdt.ui.history
 
-import android.net.Uri
 import androidx.hilt.lifecycle.ViewModelInject
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Stopwatch
-import org.openhdp.hdt.data.entities.Timestamp
-import timber.log.Timber
-
+import org.openhdp.hdt.ui.base.BaseViewModel
 
 class HistoryViewModel @ViewModelInject constructor(
-    val stopwatchRepository: StopwatchRepository,
-    private val exportToCsvInteractor: ExportToCsvInteractor
-) : ViewModel() {
-
-    val viewState = MutableLiveData<HistoryViewState>()
+    val stopwatchRepository: StopwatchRepository
+) : BaseViewModel<HistoryViewState>(
+    initialViewState = HistoryViewState.Loading
+) {
 
     fun initialize() {
         viewModelScope.launch(Dispatchers.Main) {
@@ -26,17 +20,17 @@ class HistoryViewModel @ViewModelInject constructor(
                 stopwatchRepository
                     .stopwatchDAO
                     .getAllStopwatchesInOrder()
-            }
-                .onSuccess {
-                    if (it.isEmpty()) {
-                        viewState.value = HistoryViewState.NoStopwatchesSoFar
+            }.onSuccess { stopwatches ->
+                pushState<HistoryViewState> {
+                    if (stopwatches.isEmpty()) {
+                        HistoryViewState.NoStopwatchesSoFar
                     } else {
-                        viewState.value = HistoryViewState.Stopwatches(it)
+                        HistoryViewState.Stopwatches(stopwatches)
                     }
                 }
-                .onFailure {
-                    viewState.value = HistoryViewState.Error(it)
-                }
+            }.onFailure { throwable ->
+                pushState<HistoryViewState> { HistoryViewState.Error(throwable) }
+            }
         }
     }
 
@@ -46,31 +40,19 @@ class HistoryViewModel @ViewModelInject constructor(
                 stopwatchRepository
                     .timestampDAO
                     .getTimestampsFrom(stopwatch.id)
-            }.onSuccess {
-                if (it.isEmpty()) {
-                    viewState.value = HistoryViewState.NoStopwatchesTimestampsSoFar(stopwatch)
-                } else {
-                    viewState.value = HistoryViewState.StopwatchesResult(stopwatch, it)
+            }.onSuccess { timestamps ->
+                pushState<HistoryViewState> {
+                    if (timestamps.isEmpty()) {
+                        HistoryViewState.NoStopwatchTimestampsSoFar(stopwatch)
+                    } else {
+                        HistoryViewState.StopwatchesResult(stopwatch, timestamps)
+                    }
                 }
-            }.onFailure {
-                viewState.value = HistoryViewState.Error(it)
+
+            }.onFailure { throwable ->
+                pushState<HistoryViewState> { HistoryViewState.Error(throwable) }
             }
         }
     }
-
-    fun doExport(fileUri: Uri): String? {
-        (viewState.value as? HistoryViewState.StopwatchesResult)?.let { result ->
-
-            val name = result.stopwatch.name
-            exportToCsvInteractor.export(fileUri, name, result.timestamps)
-
-            return name
-        } ?: run {
-            Timber.e("export failed")
-
-        }
-        return null
-    }
-
 }
 

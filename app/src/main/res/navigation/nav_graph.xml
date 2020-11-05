@@ -51,7 +51,7 @@
         android:label="CategoriesListFragment" />
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="org.openhdp.hdt.ui.fragments.SettingsFragment"
+        android:name="org.openhdp.hdt.ui.settings.SettingsFragment"
         android:label="SettingsFragment" />
     <fragment
         android:id="@+id/trackingFragment"

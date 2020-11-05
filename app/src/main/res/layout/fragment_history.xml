@@ -7,7 +7,7 @@
 
     <TextView
         android:id="@+id/timer_selector"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:background="@drawable/dropdown_background"
@@ -16,21 +16,9 @@
         android:paddingVertical="8dp"
         android:text="Select timer"
         android:textColor="@color/black"
-        app:layout_constraintEnd_toStartOf="@+id/export_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Category" />
-
-    <Button
-        android:id="@+id/export_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:text="export"
-        app:layout_constraintBottom_toBottomOf="@+id/timer_selector"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/timer_selector" />
-
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview_history"
@@ -54,5 +42,15 @@
         android:textColor="@color/black"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Category" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
