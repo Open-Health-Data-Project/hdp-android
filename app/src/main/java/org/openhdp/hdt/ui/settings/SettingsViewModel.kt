@@ -10,12 +10,22 @@ import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.ui.base.BaseViewModel
 import org.openhdp.hdt.ui.history.ExportToCsvInteractor
 import java.lang.IllegalStateException
+import java.text.SimpleDateFormat
+import java.util.*
 
 class SettingsViewModel @ViewModelInject constructor(
     private val stopwatchRepository: StopwatchRepository,
     private val exportStopwatchesUseCase: ExportStopwatchesUseCase,
-    private val exportTimestampsUseCase: ExportTimestampsUseCase
+    private val exportTimestampsUseCase: ExportTimestampsUseCase,
+    private val startOfDayUseCase: StartOfDayUseCase
 ) : BaseViewModel<SettingsViewState>() {
+
+    fun initialize() {
+        val startOfDay = startOfDayUseCase.getCurrentStartOfDay()
+        setState(
+            SettingsViewState.Display(startOfDay.hours, startOfDay.minutes)
+        )
+    }
 
     fun onEvent(event: SettingsEvent) = when (event) {
         SettingsEvent.RequestExportStopwatches -> {
@@ -32,6 +42,10 @@ class SettingsViewModel @ViewModelInject constructor(
         }
         is SettingsEvent.ExportStopwatchTimestamps -> {
             exportStopwatchTimestamps(event.uri)
+        }
+        is SettingsEvent.ChangeStartOfDay -> {
+            startOfDayUseCase.saveStartOfDay(StartOfDay(event.hourOfDay, event.minute))
+            initialize()
         }
     }
 

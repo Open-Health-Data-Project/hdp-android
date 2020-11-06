@@ -19,5 +19,7 @@ sealed class SettingsViewState {
         @NotEmpty val timestamps: List<Timestamp>
     ) : SettingsViewState()
 
+    data class Display(val hours: Int, val minutes: Int) : SettingsViewState()
+
     data class Error(val issue: Throwable) : SettingsViewState()
 }

@@ -14,4 +14,6 @@ sealed class SettingsEvent {
     data class ExportStopwatchTimestamps(val uri: Uri) : SettingsEvent()
 
     data class ExportStopwatches(val uri: Uri) : SettingsEvent()
+
+    data class ChangeStartOfDay(val hourOfDay: Int, val minute: Int) : SettingsEvent()
 }
