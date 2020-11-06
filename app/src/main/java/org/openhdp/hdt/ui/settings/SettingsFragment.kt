@@ -1,11 +1,13 @@
 package org.openhdp.hdt.ui.settings
 
+import android.app.TimePickerDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TimePicker
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -14,6 +16,8 @@ import org.openhdp.hdt.RequestCodes.Companion.EXPORT_TIMESTAMPS
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.databinding.FragmentSettingsBinding
 import org.openhdp.hdt.showText
+import java.util.*
+import kotlin.math.min
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
@@ -41,6 +45,7 @@ class SettingsFragment : Fragment() {
             viewModel.onEvent(SettingsEvent.RequestStopwatchPicker)
         }
         viewModel.viewState.observe(viewLifecycleOwner, ::renderState)
+        viewModel.initialize()
     }
 
     private fun renderState(state: SettingsViewState): Any = when (state) {
@@ -64,7 +69,30 @@ class SettingsFragment : Fragment() {
         is SettingsViewState.Error -> {
             requireActivity().showText(state.issue.toString())
         }
-
+        is SettingsViewState.Display -> {
+            val hours = state.hours
+            val minutes = state.minutes
+            binding.startOfDayLabel.text = String.format(
+                Locale.US,
+                "%02d:%02d",
+                hours,
+                minutes
+            )
+            binding.startOfDayButton.setOnClickListener {
+                val dialog = TimePickerDialog(
+                    requireActivity(),
+                    object : TimePickerDialog.OnTimeSetListener {
+                        override fun onTimeSet(view: TimePicker?, hourOfDay: Int, minute: Int) {
+                            viewModel.onEvent(SettingsEvent.ChangeStartOfDay(hourOfDay, minute))
+                        }
+                    },
+                    hours,
+                    minutes,
+                    true
+                )
+                dialog.show()
+            }
+        }
     }
 
     private fun csvIntentOf(name: String): Intent {
