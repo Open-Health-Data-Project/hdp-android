@@ -12,8 +12,13 @@ class ExportStopwatchesUseCase @Inject constructor(
 
     fun export(fileUri: Uri, stopwatches: List<Stopwatch>) {
         val lineWriter: (Stopwatch) -> String = { stopwatch ->
-            "${stopwatch.id},${stopwatch.categoryId}"
+            "${stopwatch.id},${stopwatch.name},${stopwatch.categoryId}"
         }
-        interactor.export(fileUri, stopwatches, "stopwatchId,categoryName", lineWriter)
+        interactor.export(
+            fileUri,
+            stopwatches,
+            "stopwatchId,stopwatchName,categoryName",
+            lineWriter
+        )
     }
 }

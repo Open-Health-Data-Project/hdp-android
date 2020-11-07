@@ -12,8 +12,11 @@ import org.openhdp.hdt.data.dao.TimestampDAO
 import org.openhdp.hdt.data.entities.Category
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.data.entities.Timestamp
+import org.openhdp.hdt.ui.settings.StartOfDay
+import org.openhdp.hdt.ui.settings.StartOfDayUseCase
 import org.openhdp.hdt.ui.tracking.addCounter.AddStopwatchViewState
 import timber.log.Timber
+import java.lang.Math.abs
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
@@ -22,7 +25,8 @@ import kotlin.collections.ArrayList
 class TrackingViewModel @ViewModelInject constructor(
     private val stopwatchRepository: StopwatchRepository,
     private val categoryDAO: CategoryDAO,
-    private val timestampDAO: TimestampDAO
+    private val timestampDAO: TimestampDAO,
+    private val startOfDayUseCase: StartOfDayUseCase
 ) : ViewModel(), OnItemClickListener {
 
     private val _viewState = MutableLiveData<TrackingViewState>()
@@ -32,16 +36,14 @@ class TrackingViewModel @ViewModelInject constructor(
 
     private var job: Job? = null
 
-    private val transactionJobs = arrayListOf<Job>()
-
-    private fun Job.pick() = transactionJobs.add(this)
 
     fun initialize() {
         viewModelScope.launch(Dispatchers.Main) {
             runCatching {
                 val stopwatches = stopwatchRepository.stopwatchDAO.getAllStopwatchesInOrder()
                 val categories = categoryDAO.getAllCategoriesOrdered()
-                stopwatches.mapNotNull { it.asTrackingItem(categories) }
+                val startOfDay = startOfDayUseCase.getCurrentStartOfDay()
+                stopwatches.mapNotNull { it.asTrackingItem(categories, startOfDay) }
             }.onFailure {
                 Timber.e(it, "initialize() failure ")
                 _viewState.value = TrackingViewState.Error(it)
@@ -53,43 +55,50 @@ class TrackingViewModel @ViewModelInject constructor(
                     countdown()
                 }
             }
-        }.pick()
+        }
     }
 
-    private suspend fun Stopwatch.asTrackingItem(categories: List<Category>): TrackingItem? {
+    private suspend fun Stopwatch.asTrackingItem(
+        categories: List<Category>,
+        startOfDay: StartOfDay
+    ): TrackingItem? {
         try {
             val stopWatchId = this.id
             val category = categories.firstOrNull { this.categoryId == it.id } ?: return null
 
-            val currentTime = Date().time
-            var totalTime = 0L
+            val now = Date()
+            val currentTimeInMillis = now.time
+
+            val startOfDayDate = Date(now.time)
+            startOfDayDate.hours = startOfDay.hours
+            startOfDayDate.minutes = startOfDay.minutes
+
+
+            var totalTimeInMillis = 0L
             var stopWatchRunning = false
 
             val timestamps = timestampDAO.getTimestampsFrom(stopWatchId)
-            val lastIndex = timestamps.lastIndex
-            timestamps.forEachIndexed { index, it ->
-                val stopTime = it.stopTime
-                if (stopTime == null) {
-                    if (index != lastIndex) {
-                        Timber.e("this is weird")
-                    }
-                    Timber.e("timestamp ${this.id} index $index timestamp end is null / ${it.startTime}")
-                } else {
-                    Timber.w(
-                        "timestamp ${this.id} index $index timestamp diff is ${
-                            kotlin.math.abs(
-                                stopTime - it.startTime
-                            )
-                        } / ${it.startTime}"
-                    )
-                }
+            val millisAfterReset = StartOfDayTimeCalculator().calculate(startOfDay, timestamps, now)
+
+            timestamps.forEachIndexed { index, timestamp ->
+                val stopTime = timestamp.stopTime
+                val startTime = timestamp.startTime
+                val startDate = Date(startTime)
+
                 if (stopTime != null) {
                     //timer was paused before
-                    totalTime += kotlin.math.abs(stopTime - it.startTime)
+
+
+                    if (startDate.after(startOfDayDate)) {
+
+                    }
+
+                    totalTimeInMillis += kotlin.math.abs(stopTime - startTime)
                 } else {
+
 //                    val timeoutInMillis = TimeUnit.HOURS.toMillis(16L)
 //                    val lastActivityDurationTillNow = kotlin.math.abs(currentTime - it.startTime)
-                    totalTime += kotlin.math.abs(currentTime - it.startTime)
+                    totalTimeInMillis += kotlin.math.abs(currentTimeInMillis - startTime)
                     if (timestamps.lastIndex == index) {
                         stopWatchRunning = true
                     } //make it still running
@@ -100,8 +109,9 @@ class TrackingViewModel @ViewModelInject constructor(
                 id,
                 name,
                 category.name,
-                totalTime,
+                millisAfterReset,
                 buttonState = PlaybackButtonState(if (stopWatchRunning) TrackState.ACTIVE else TrackState.INACTIVE),
+                startOfDay,
                 category.color
             )
         } catch (throwable: Throwable) {
@@ -131,7 +141,15 @@ class TrackingViewModel @ViewModelInject constructor(
         onState<TrackingViewState.Results> { currentState ->
             val updatedItems = currentState.items.map {
                 if (it.isRunning()) {
-                    it.copy(millisTracked = it.millisTracked + duration)
+                    val now = Date()
+                    val nowMinutes = now.hours * 60 + now.minutes
+                    val targetMillis =
+                        if (it.startOfDay.totalMinutes() == nowMinutes && now.seconds == 0) {
+                            0
+                        } else {
+                            it.millisTracked + duration
+                        }
+                    it.copy(millisTracked = targetMillis)
                 } else {
                     it
                 }
@@ -141,18 +159,7 @@ class TrackingViewModel @ViewModelInject constructor(
     }
 
     override fun onCleared() {
-        GlobalScope.launch {
-
-            transactionJobs.forEach {
-                if (it.isActive) {
-                    runCatching { it.cancelAndJoin() }.onFailure {
-                        Timber.d("error join job $it")
-                    }
-                }
-            }
-            transactionJobs.clear()
-            stopCountdown()
-        }
+        GlobalScope.launch { stopCountdown() }
         super.onCleared()
     }
 
@@ -221,8 +228,7 @@ class TrackingViewModel @ViewModelInject constructor(
                         }
                     }
                 }
-        }.pick()
-
+        }
 
         onState<TrackingViewState.Results> { state ->
             val currentItems = state.items
@@ -279,6 +285,6 @@ class TrackingViewModel @ViewModelInject constructor(
             }.onSuccess {
                 initialize()
             }
-        }.pick()
+        }
     }
 }

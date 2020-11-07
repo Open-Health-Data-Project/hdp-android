@@ -65,6 +65,7 @@ class DashboardItemViewHolder(
         bindButtons(item, listener)
         binding.root.setOnTouchListener(wrapDragChanges(dragChangeListener))
         binding.timerName.text = item.name
+        binding.categoryName.text = item.categoryName
 
         formatElapsedTime(item.millisTracked)
     }
@@ -82,7 +83,7 @@ class DashboardItemViewHolder(
         binding.root.setupCorners(R.color.white) {
             setAllCorners(CornerFamily.ROUNDED, radius)
         }
-        binding.timerName.setupCornersWithColor(color) {
+        binding.categoryName.setupCornersWithColor(color) {
             setTopLeftCorner(CornerFamily.ROUNDED, radius)
             setTopRightCorner(CornerFamily.ROUNDED, radius)
         }

@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlin.math.min
 
 class StartOfDayUseCase @Inject constructor(private val application: Application) {
 
@@ -32,4 +33,8 @@ class StartOfDayUseCase @Inject constructor(private val application: Application
     }
 }
 
-data class StartOfDay(val hours: Int, val minutes: Int)
+data class StartOfDay(val hours: Int, val minutes: Int) {
+
+    fun totalMinutes(): Int = hours * 60 + minutes
+
+}
