@@ -87,12 +87,6 @@ class TrackingViewModel @ViewModelInject constructor(
 
                 if (stopTime != null) {
                     //timer was paused before
-
-
-                    if (startDate.after(startOfDayDate)) {
-
-                    }
-
                     totalTimeInMillis += kotlin.math.abs(stopTime - startTime)
                 } else {
 
