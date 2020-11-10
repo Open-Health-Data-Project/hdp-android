@@ -24,8 +24,7 @@ class StartOfDayUseCase @Inject constructor(private val application: Application
         return StartOfDay(hours, minutes % 60)
     }
 
-    fun saveStartOfDay(startOfDay: StartOfDay) {
-        val (hours, minutes) = startOfDay
+    fun saveStartOfDay(hours: Int, minutes: Int) {
         val hoursInSeconds = hours * 60
         prefs.edit()
             .putInt(KEY_START_OF_DAY, hoursInSeconds + minutes % 60)

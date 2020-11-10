@@ -11,13 +11,12 @@ import android.widget.TimePicker
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import org.openhdp.hdt.RequestCodes.Companion.EXPORT_STOPWATCHES
 import org.openhdp.hdt.RequestCodes.Companion.EXPORT_TIMESTAMPS
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.databinding.FragmentSettingsBinding
 import org.openhdp.hdt.showText
+import org.openhdp.hdt.ui.settings.export.ExportPickerHelper
 import java.util.*
-import kotlin.math.min
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
@@ -38,61 +37,68 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.exportStopwatchesButton.setOnClickListener {
-            viewModel.onEvent(SettingsEvent.RequestExportStopwatches)
-        }
-        binding.exportTimestampsButton.setOnClickListener {
-            viewModel.onEvent(SettingsEvent.RequestStopwatchPicker)
+        binding.exportButton.setOnClickListener {
+            viewModel.onEvent(SettingsEvent.RequestGenericExportDialog)
         }
         viewModel.viewState.observe(viewLifecycleOwner, ::renderState)
         viewModel.initialize()
     }
 
     private fun renderState(state: SettingsViewState): Any = when (state) {
-        is SettingsViewState.ExportStopwatchesData -> {
-            requestExportStopwatches()
-
-        }
-        is SettingsViewState.ExportStopwatchTimestamps -> {
-            requestExportTimestamps(state.stopwatch)
-        }
-        is SettingsViewState.DisplayStopwatchPicker -> {
-            DialogHelper(requireActivity())
-                .showMultiChoice(
-                    title = "Select stopwatch",
-                    options = state.stopwatches,
-                    onPicked = {
-                        viewModel.onEvent(SettingsEvent.RequestExportStopwatchTimestamps(it))
-                    },
-                    renderer = { it.name })
-        }
         is SettingsViewState.Error -> {
             requireActivity().showText(state.issue.toString())
         }
         is SettingsViewState.Display -> {
-            val hours = state.hours
-            val minutes = state.minutes
-            binding.startOfDayLabel.text = String.format(
-                Locale.US,
-                "%02d:%02d",
-                hours,
-                minutes
-            )
-            binding.startOfDayButton.setOnClickListener {
-                val dialog = TimePickerDialog(
-                    requireActivity(),
-                    object : TimePickerDialog.OnTimeSetListener {
-                        override fun onTimeSet(view: TimePicker?, hourOfDay: Int, minute: Int) {
-                            viewModel.onEvent(SettingsEvent.ChangeStartOfDay(hourOfDay, minute))
-                        }
-                    },
-                    hours,
-                    minutes,
-                    true
-                )
-                dialog.show()
-            }
+            renderDisplayState(state)
         }
+        is SettingsViewState.DisplayExportPicker -> {
+            ExportPickerHelper(requireActivity()).displayExportPicker(
+                state.stopwatches,
+                ::exportStopwatches,
+                ::exportCategories,
+                ::exportTimestamps
+            )
+        }
+        is SettingsViewState.Share -> {
+            state.uri.share()
+        }
+    }
+
+    private fun renderDisplayState(state: SettingsViewState.Display) {
+        val hours = state.hours
+        val minutes = state.minutes
+        binding.startOfDayLabel.text = String.format(
+            Locale.US,
+            "%02d:%02d",
+            hours,
+            minutes
+        )
+        binding.startOfDayButton.setOnClickListener {
+            val dialog = TimePickerDialog(
+                requireActivity(),
+                object : TimePickerDialog.OnTimeSetListener {
+                    override fun onTimeSet(view: TimePicker?, hourOfDay: Int, minute: Int) {
+                        viewModel.onEvent(SettingsEvent.ChangeStartOfDay(hourOfDay, minute))
+                    }
+                },
+                hours,
+                minutes,
+                true
+            )
+            dialog.show()
+        }
+    }
+
+    private fun exportStopwatches() {
+        viewModel.onEvent(SettingsEvent.ExportStopwatches)
+    }
+
+    private fun exportCategories() {
+        viewModel.onEvent(SettingsEvent.ExportCategories)
+    }
+
+    private fun exportTimestamps(stopwatch: Stopwatch) {
+        viewModel.onEvent(SettingsEvent.ExportTimestamps(stopwatch))
     }
 
     private fun csvIntentOf(name: String): Intent {
@@ -103,53 +109,19 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    private fun requestExportStopwatches() {
-        val intent = csvIntentOf("stopwatches")
-        startActivityForResult(intent, EXPORT_STOPWATCHES)
-    }
-
     private fun requestExportTimestamps(stopwatch: Stopwatch) {
         val intent = csvIntentOf("${stopwatch.name}_timestamps")
         startActivityForResult(intent, EXPORT_TIMESTAMPS)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        val uri = data?.data ?: return
-        when (requestCode) {
-            EXPORT_STOPWATCHES -> {
-                viewModel.onEvent(SettingsEvent.ExportStopwatches(uri))
-                requireActivity().showText("CSV saved!")
-                uri.shareStopwatchData()
-            }
-            EXPORT_TIMESTAMPS -> {
-                viewModel.onEvent(SettingsEvent.ExportStopwatchTimestamps(uri))
-                requireActivity().showText("CSV saved!")
-                uri.shareStopwatchTimestampsData()
-            }
-        }
-    }
-
-    private fun Uri.shareStopwatchData() {
+    private fun Uri.share() {
         val intentShareFile = Intent(Intent.ACTION_SEND)
         intentShareFile.type = "text/csv";
         intentShareFile.putExtra(Intent.EXTRA_STREAM, this)
 
         intentShareFile.putExtra(
             Intent.EXTRA_SUBJECT,
-            "Sharing OHDP stopwatches data"
-        )
-        startActivity(Intent.createChooser(intentShareFile, "Share CSV"));
-    }
-
-    private fun Uri.shareStopwatchTimestampsData() {
-        val intentShareFile = Intent(Intent.ACTION_SEND)
-        intentShareFile.type = "text/csv";
-        intentShareFile.putExtra(Intent.EXTRA_STREAM, this)
-
-        intentShareFile.putExtra(
-            Intent.EXTRA_SUBJECT,
-            "Sharing OHDP timestamps data"
+            "Sharing OHDP data"
         )
         startActivity(Intent.createChooser(intentShareFile, "Share CSV"));
     }

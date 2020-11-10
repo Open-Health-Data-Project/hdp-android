@@ -76,4 +76,3 @@
         app:srcCompat="@drawable/ic_play" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

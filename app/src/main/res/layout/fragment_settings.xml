@@ -7,7 +7,7 @@
     android:orientation="vertical">
 
     <LinearLayout
-        android:id="@+id/export_stopwatches_button"
+        android:id="@+id/export_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
@@ -15,7 +15,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Export stopwatches data"
+            android:text="Export data to CSV"
             android:textColor="@color/black"
             android:textSize="18dp" />
 
@@ -23,28 +23,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Transfer data to CSV" />
-    </LinearLayout>
+            android:text="" />
 
-    <LinearLayout
-        android:id="@+id/export_timestamps_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Export timestamps data"
-            android:textColor="@color/black"
-            android:textSize="18dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Transfer data to CSV" />
     </LinearLayout>
 
     <LinearLayout

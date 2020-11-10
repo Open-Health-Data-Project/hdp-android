@@ -1,4 +1,4 @@
-package org.openhdp.hdt.ui.settings
+package org.openhdp.hdt.ui.settings.export
 
 import android.app.Application
 import android.net.Uri
@@ -6,7 +6,9 @@ import org.openhdp.hdt.ui.base.NotEmpty
 import java.io.FileOutputStream
 import javax.inject.Inject
 
-class ExportCsvInteractor @Inject constructor(private val application: Application) {
+class ExportCsvInteractor @Inject constructor(
+     val application: Application
+) {
 
     fun <T : Any> export(
         fileUri: Uri,

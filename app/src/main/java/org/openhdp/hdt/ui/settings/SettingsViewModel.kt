@@ -1,6 +1,5 @@
 package org.openhdp.hdt.ui.settings
 
-import android.net.Uri
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -8,14 +7,15 @@ import kotlinx.coroutines.launch
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.ui.base.BaseViewModel
-import org.openhdp.hdt.ui.history.ExportToCsvInteractor
-import java.lang.IllegalStateException
-import java.text.SimpleDateFormat
-import java.util.*
+import org.openhdp.hdt.ui.settings.export.ExportCategoriesUseCase
+import org.openhdp.hdt.ui.settings.export.ExportStopwatchesUseCase
+import org.openhdp.hdt.ui.settings.export.ExportTimestampsUseCase
+import timber.log.Timber
 
 class SettingsViewModel @ViewModelInject constructor(
     private val stopwatchRepository: StopwatchRepository,
     private val exportStopwatchesUseCase: ExportStopwatchesUseCase,
+    private val exportCategoriesUseCase: ExportCategoriesUseCase,
     private val exportTimestampsUseCase: ExportTimestampsUseCase,
     private val startOfDayUseCase: StartOfDayUseCase
 ) : BaseViewModel<SettingsViewState>() {
@@ -28,75 +28,91 @@ class SettingsViewModel @ViewModelInject constructor(
     }
 
     fun onEvent(event: SettingsEvent) = when (event) {
-        SettingsEvent.RequestExportStopwatches -> {
-            fetchStopwatchesData()
+        SettingsEvent.ExportStopwatches -> {
+            exportStopwatchesData()
         }
-        SettingsEvent.RequestStopwatchPicker -> {
-            requestStopwatchPicker()
-        }
-        is SettingsEvent.RequestExportStopwatchTimestamps -> {
-            fetchTimestampsData(event.stopwatch)
-        }
-        is SettingsEvent.ExportStopwatches -> {
-            exportStopwatches(event.uri)
-        }
-        is SettingsEvent.ExportStopwatchTimestamps -> {
-            exportStopwatchTimestamps(event.uri)
+        is SettingsEvent.ExportTimestamps -> {
+            exportStopwatchTimestamps(event.stopwatch)
         }
         is SettingsEvent.ChangeStartOfDay -> {
-            startOfDayUseCase.saveStartOfDay(StartOfDay(event.hourOfDay, event.minute))
+            startOfDayUseCase.saveStartOfDay(event.hourOfDay, event.minute)
             initialize()
         }
-    }
-
-    private fun fetchStopwatchesData() {
-        viewModelScope.launch(Dispatchers.Main) {
-            runCatching {
-                stopwatchRepository.stopwatches()
-            }.onSuccess { stopwatches ->
-                setState(SettingsViewState.ExportStopwatchesData(stopwatches))
-            }.onFailure { issue ->
-                setState(SettingsViewState.Error(issue))
-            }
+        SettingsEvent.RequestGenericExportDialog -> {
+            requestExportDialog()
+        }
+        SettingsEvent.ExportCategories -> {
+            requestExportCategories()
         }
     }
 
-    private fun requestStopwatchPicker() {
+    private fun exportStopwatchTimestamps(stopwatch: Stopwatch) {
         viewModelScope.launch(Dispatchers.Main) {
             runCatching {
-                stopwatchRepository.stopwatches()
-            }.onSuccess { stopwatches ->
-                setState(SettingsViewState.DisplayStopwatchPicker(stopwatches))
-            }.onFailure { issue ->
-                setState(SettingsViewState.Error(issue))
-            }
-        }
-    }
-
-    private fun fetchTimestampsData(stopwatch: Stopwatch) {
-        viewModelScope.launch(Dispatchers.Main) {
-            runCatching {
-                stopwatchRepository.timestamps(stopwatch.id)
-            }.onSuccess {
-                if (it.isEmpty()) {
-                    setState(SettingsViewState.Error(IllegalStateException("timestamps should not be empty")))
+                val timestamps = stopwatchRepository.timestamps(stopwatch.id)
+                Timber.e("imestamps( ${timestamps.size}")
+                if (timestamps.isNotEmpty()) {
+                    setState(
+                        SettingsViewState.Share(
+                            exportTimestampsUseCase.export(
+                                stopwatch.id,
+                                timestamps
+                            )
+                        )
+                    )
                 } else {
-                    setState(SettingsViewState.ExportStopwatchTimestamps(stopwatch, it))
+                    setState(SettingsViewState.Error(NothingToExportException()))
                 }
             }.onFailure {
-                setState(SettingsViewState.Error(it))
+                Timber.e(it)
             }
         }
     }
 
-    private fun exportStopwatches(uri: Uri) = whenState<SettingsViewState.ExportStopwatchesData> {
-        exportStopwatchesUseCase.export(uri, it.stopwatches)
+    private fun requestExportCategories() {
+        viewModelScope.launch(Dispatchers.Main) {
+            runCatching {
+                val categories = stopwatchRepository.categories()
+                Timber.e("requestExportCategories ${categories.size}")
+                if (categories.isNotEmpty()) {
+                    setState(SettingsViewState.Share(exportCategoriesUseCase.export(categories)))
+                } else {
+                    setState(SettingsViewState.Error(NothingToExportException()))
+                }
+            }.onFailure {
+                Timber.e(it)
+            }
+        }
     }
 
-    private fun exportStopwatchTimestamps(uri: Uri) {
-        whenState<SettingsViewState.ExportStopwatchTimestamps> {
-            exportTimestampsUseCase.export(uri, it.stopwatch.id, it.timestamps)
-        }
+    private fun requestExportDialog() {
+        viewModelScope.launch(Dispatchers.Main) {
 
+            val stopwatches = stopwatchRepository.stopwatches()
+            setState(SettingsViewState.DisplayExportPicker(stopwatches))
+        }
+    }
+
+    private fun exportStopwatchesData() {
+        viewModelScope.launch(Dispatchers.Main) {
+            runCatching {
+                stopwatchRepository.stopwatches()
+            }.onSuccess { stopwatches ->
+                if (stopwatches.isNotEmpty()) {
+                    setState(
+                        SettingsViewState.Share(
+                            exportStopwatchesUseCase.export(stopwatches)
+                        )
+                    )
+                } else {
+                    setState(SettingsViewState.Error(NothingToExportException()))
+                }
+
+            }.onFailure { issue ->
+                setState(SettingsViewState.Error(issue))
+            }
+        }
     }
 }
+
+class NothingToExportException : Exception()
