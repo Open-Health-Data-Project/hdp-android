@@ -44,13 +44,36 @@ class SettingsViewModel @ViewModelInject constructor(
         SettingsEvent.ExportCategories -> {
             requestExportCategories()
         }
+        SettingsEvent.ExportAllTimestamps -> {
+            exportAllStopwatchTimestamps()
+        }
+    }
+
+    private fun exportAllStopwatchTimestamps() {
+        viewModelScope.launch(Dispatchers.Main) {
+            runCatching {
+                val timestamps = stopwatchRepository.allTimestamps()
+                Timber.e("timestamps(${timestamps.size})")
+                if (timestamps.isNotEmpty()) {
+                    setState(
+                        SettingsViewState.Share(
+                            exportTimestampsUseCase.exportAll(timestamps)
+                        )
+                    )
+                } else {
+                    setState(SettingsViewState.Error(NothingToExportException()))
+                }
+            }.onFailure {
+                Timber.e(it)
+            }
+        }
     }
 
     private fun exportStopwatchTimestamps(stopwatch: Stopwatch) {
         viewModelScope.launch(Dispatchers.Main) {
             runCatching {
                 val timestamps = stopwatchRepository.timestamps(stopwatch.id)
-                Timber.e("imestamps( ${timestamps.size}")
+                Timber.e("timestamps( ${timestamps.size}")
                 if (timestamps.isNotEmpty()) {
                     setState(
                         SettingsViewState.Share(

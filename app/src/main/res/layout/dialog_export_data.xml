@@ -42,5 +42,17 @@
         android:paddingVertical="8dp"
         android:text="Timestamps"
         android:textColor="@color/black" />
+    <TextView
+        android:id="@+id/all_timestamps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="8dp"
+        android:background="@drawable/dropdown_background"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="8dp"
+        android:text="All Timestamps"
+        android:textColor="@color/black" />
 
 </LinearLayout>

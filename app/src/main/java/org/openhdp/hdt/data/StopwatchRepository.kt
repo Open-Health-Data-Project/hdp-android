@@ -20,6 +20,8 @@ class StopwatchRepository @Inject constructor(
 
     suspend fun timestamps(stopwatchId: String) = timestampDAO.getTimestampsFrom(stopwatchId)
 
+    suspend fun allTimestamps() = timestampDAO.getAllTimestamps()
+
     suspend fun totalTimestampsCount() = timestampDAO.getAllTimestampsCount()
 
 }

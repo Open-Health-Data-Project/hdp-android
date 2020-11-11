@@ -17,7 +17,16 @@ class ExportTimestampsUseCase @Inject constructor(
     private val CSV_DATE_FORMAT = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.ENGLISH)
 
     fun export(stopWatchId: String, data: List<Timestamp>): Uri {
-        val file = File.createTempFile("${stopWatchId}_timestamps", ".csv", application.cacheDir)
+        return doExport("${stopWatchId}_timestamps", data)
+    }
+
+    fun exportAll(data: List<Timestamp>): Uri {
+        return doExport("all_timestamps", data)
+    }
+
+    private fun doExport(fileName: String, data: List<Timestamp>): Uri {
+
+        val file = File.createTempFile(fileName, ".csv", application.cacheDir)
         val uri = FileProvider.getUriForFile(
             application,
             application.packageName.toString() + ".provider",
@@ -30,9 +39,9 @@ class ExportTimestampsUseCase @Inject constructor(
             val start = CSV_DATE_FORMAT.format(Date(startTime))
             val line = if (stopTime != null) {
                 val end = CSV_DATE_FORMAT.format(Date(stopTime))
-                "$stopWatchId,$start,$end"
+                "${timestamp.stopwatchId},$start,$end"
             } else {
-                "$stopWatchId,$start"
+                "${timestamp.stopwatchId},$start"
             }
             line
         }

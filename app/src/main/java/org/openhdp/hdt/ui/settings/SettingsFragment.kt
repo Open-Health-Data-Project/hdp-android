@@ -56,7 +56,8 @@ class SettingsFragment : Fragment() {
                 state.stopwatches,
                 ::exportStopwatches,
                 ::exportCategories,
-                ::exportTimestamps
+                ::exportTimestamps,
+                ::exportAllTimestamps
             )
         }
         is SettingsViewState.Share -> {
@@ -99,6 +100,9 @@ class SettingsFragment : Fragment() {
 
     private fun exportTimestamps(stopwatch: Stopwatch) {
         viewModel.onEvent(SettingsEvent.ExportTimestamps(stopwatch))
+    }
+    private fun exportAllTimestamps() {
+        viewModel.onEvent(SettingsEvent.ExportAllTimestamps)
     }
 
     private fun csvIntentOf(name: String): Intent {

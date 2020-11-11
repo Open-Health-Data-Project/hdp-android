@@ -18,6 +18,7 @@ class ExportPickerHelper @Inject constructor(private val activity: Activity) {
         onStopwatches: () -> Unit,
         onCategories: () -> Unit,
         onStopwatchClick: (stopwatch: Stopwatch) -> Unit,
+        onAllTimestamps: () -> Unit
     ) {
         val dialog = Dialog(activity)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -43,6 +44,13 @@ class ExportPickerHelper @Inject constructor(private val activity: Activity) {
                 onStopwatchClick(stopwatch)
                 dialog.dismiss()
             }
+        }
+
+        val allTimestampsButton = dialog.findViewById<View>(R.id.all_timestamps)
+
+        allTimestampsButton.setOnClickListener {
+            onAllTimestamps()
+            dialog.dismiss()
         }
         dialog.show()
     }
