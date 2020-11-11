@@ -8,16 +8,29 @@
     android:elevation="8dp">
 
     <TextView
+        android:id="@+id/category_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingVertical="4dp"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="category name" />
+
+    <TextView
         android:id="@+id/timer_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
+        android:paddingVertical="4dp"
         android:textColor="@color/black"
         android:textSize="14sp"
-        android:paddingVertical="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/category_name"
         tools:text="Timer name" />
 
     <TextView
@@ -63,4 +76,3 @@
         app:srcCompat="@drawable/ic_play" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

@@ -1,14 +1,16 @@
 package org.openhdp.hdt.ui.tracking
 
 import androidx.annotation.ColorInt
+import org.openhdp.hdt.ui.settings.StartOfDay
 
 
 data class TrackingItem(
-    val stopWatchId: String,
+    val stopwatchId: String,
     val name: String,
-    val description: String,
+    val categoryName: String,
     val millisTracked: Long,
     val buttonState: PlaybackButtonState,
+    val startOfDay: StartOfDay,
     @ColorInt val color: Int
 ) {
     fun toggled(isEnabled: Boolean = true): TrackingItem {

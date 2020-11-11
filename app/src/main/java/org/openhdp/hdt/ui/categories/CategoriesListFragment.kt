@@ -82,7 +82,13 @@ class CategoriesListFragment : Fragment(R.layout.fragment_categories_list) {
                         Toast.makeText(requireContext(), "item $it", Toast.LENGTH_SHORT).show()
                     },
                     onRemove = {
-                        viewModel.deleteCategory(it)
+                        Toast.makeText(
+                            requireContext(),
+                            "Remove not supported in this version",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        // temporarily delete category
+                        // viewModel.deleteCategory(it)
                     }
                 )
                 binding.recyclerCategories.adapter = adapter

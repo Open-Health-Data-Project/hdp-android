@@ -1,20 +1,18 @@
 package org.openhdp.hdt.ui.history
 
 import androidx.hilt.lifecycle.ViewModelInject
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Stopwatch
-
+import org.openhdp.hdt.ui.base.BaseViewModel
 
 class HistoryViewModel @ViewModelInject constructor(
     val stopwatchRepository: StopwatchRepository
-) : ViewModel() {
-
-    val viewState = MutableLiveData<HistoryViewState>()
+) : BaseViewModel<HistoryViewState>(
+    initialViewState = HistoryViewState.Loading
+) {
 
     fun initialize() {
         viewModelScope.launch(Dispatchers.Main) {
@@ -22,17 +20,17 @@ class HistoryViewModel @ViewModelInject constructor(
                 stopwatchRepository
                     .stopwatchDAO
                     .getAllStopwatchesInOrder()
-            }
-                .onSuccess {
-                    if (it.isEmpty()) {
-                        viewState.value = HistoryViewState.NoStopwatchesSoFar
+            }.onSuccess { stopwatches ->
+                pushState<HistoryViewState> {
+                    if (stopwatches.isEmpty()) {
+                        HistoryViewState.NoStopwatchesSoFar
                     } else {
-                        viewState.value = HistoryViewState.Stopwatches(it)
+                        HistoryViewState.Stopwatches(stopwatches)
                     }
                 }
-                .onFailure {
-
-                }
+            }.onFailure { throwable ->
+                pushState<HistoryViewState> { HistoryViewState.Error(throwable) }
+            }
         }
     }
 
@@ -42,14 +40,17 @@ class HistoryViewModel @ViewModelInject constructor(
                 stopwatchRepository
                     .timestampDAO
                     .getTimestampsFrom(stopwatch.id)
-            }.onSuccess {
-                if (it.isEmpty()) {
-                    viewState.value = HistoryViewState.NoStopwatchesTimestampsSoFar(stopwatch)
-                } else {
-                    viewState.value = HistoryViewState.StopwatchesResult(stopwatch, it)
+            }.onSuccess { timestamps ->
+                pushState<HistoryViewState> {
+                    if (timestamps.isEmpty()) {
+                        HistoryViewState.NoStopwatchTimestampsSoFar(stopwatch)
+                    } else {
+                        HistoryViewState.StopwatchesResult(stopwatch, timestamps)
+                    }
                 }
-            }.onFailure {
 
+            }.onFailure { throwable ->
+                pushState<HistoryViewState> { HistoryViewState.Error(throwable) }
             }
         }
     }

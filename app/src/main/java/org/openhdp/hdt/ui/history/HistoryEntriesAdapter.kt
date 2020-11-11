@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import org.openhdp.hdt.data.entities.Timestamp
 import org.openhdp.hdt.databinding.ItemTimeEntryBinding
-import java.lang.Math.abs
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -47,7 +46,7 @@ class HistoryEntriesAdapter :
             return if (stopTime == null) {
                 "Started ${DATE_FORMAT.format(Date(startTime))} and still runs"
             } else {
-                val diff = abs(stopTime - startTime)
+                val diff = kotlin.math.abs(stopTime - startTime)
 
                 val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(diff)
                 val minutes = totalSeconds / 60
@@ -56,7 +55,7 @@ class HistoryEntriesAdapter :
                     String.format("%02d:%02d:%02d", hours, minutes.rem(60), totalSeconds.rem(60))
 
                 "Started ${DATE_FORMAT.format(Date(startTime))} " +
-                        "\nEnded ${DATE_FORMAT.format(Date(startTime))}" +
+                        "\nEnded ${DATE_FORMAT.format(Date(stopTime))}" +
                         "\n($duration total)"
             }
         }

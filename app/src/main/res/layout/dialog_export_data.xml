@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/stopwatches"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="8dp"
+        android:background="@drawable/dropdown_background"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="8dp"
+        android:text="Stopwatches"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/categories"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="8dp"
+        android:background="@drawable/dropdown_background"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="8dp"
+        android:text="Categories"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/timestamps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="8dp"
+        android:background="@drawable/dropdown_background"
+        android:drawableEnd="@drawable/ic_menu_down"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="8dp"
+        android:text="Timestamps"
+        android:textColor="@color/black" />
+    <TextView
+        android:id="@+id/all_timestamps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="8dp"
+        android:background="@drawable/dropdown_background"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="8dp"
+        android:text="All Timestamps"
+        android:textColor="@color/black" />
+
+</LinearLayout>

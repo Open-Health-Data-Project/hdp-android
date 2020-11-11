@@ -12,6 +12,7 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.databinding.FragmentHistoryBinding
+import org.openhdp.hdt.showText
 
 @AndroidEntryPoint
 class HistoryFragment : Fragment() {
@@ -23,6 +24,7 @@ class HistoryFragment : Fragment() {
     private val adapter = HistoryEntriesAdapter()
 
     lateinit var binding: FragmentHistoryBinding
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,37 +45,38 @@ class HistoryFragment : Fragment() {
         viewModel.initialize()
     }
 
-    private fun renderState(state: HistoryViewState) {
+    private fun renderState(state: HistoryViewState): Any {
         binding.noStopwatches.isVisible = state is HistoryViewState.NoStopwatchesSoFar
-        when (state) {
-            HistoryViewState.Loading -> {
 
+        binding.progress.isVisible = state is HistoryViewState.Loading
+
+        return when (state) {
+            HistoryViewState.Loading -> {
             }
             HistoryViewState.NoStopwatchesSoFar -> {
-
+                requireActivity().showText("No stopwatches so far")
             }
             is HistoryViewState.Stopwatches -> {
                 binding.timerSelector.setOnClickListener {
-                    onClick(it, state.stopwatches)
+                    onDropdownClick(it, state.stopwatches)
                 }
             }
-            is HistoryViewState.NoStopwatchesTimestampsSoFar -> {
+            is HistoryViewState.NoStopwatchTimestampsSoFar -> {
                 binding.timerSelector.text = state.stopwatch.name
                 adapter.submitList(emptyList())
-                Toast.makeText(
-                    requireActivity().applicationContext,
-                    "No timestamps so far",
-                    Toast.LENGTH_SHORT
-                ).show()
+                requireActivity().showText("No timestamps so far")
             }
             is HistoryViewState.StopwatchesResult -> {
                 binding.timerSelector.text = state.stopwatch.name
                 adapter.submitList(state.timestamps)
             }
+            is HistoryViewState.Error -> {
+                requireActivity().showText("Error ${state.throwable}")
+            }
         }
     }
 
-    private fun onClick(button: View, stopwatches: List<Stopwatch>) {
+    private fun onDropdownClick(button: View, stopwatches: List<Stopwatch>) {
         popupMenu?.dismiss()
         val menu = PopupMenu(button.context, button)
         stopwatches.forEach { stopwatch ->

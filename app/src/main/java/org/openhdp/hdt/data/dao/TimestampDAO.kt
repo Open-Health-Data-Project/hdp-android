@@ -23,4 +23,7 @@ interface TimestampDAO {
 
     @Query("SELECT * FROM timestamps WHERE stopwatchId=:id ORDER BY startTime ASC")
     suspend fun getTimestampsFrom(id: String): List<Timestamp>
+
+    @Query("SELECT * FROM timestamps ORDER BY startTime ASC")
+    suspend fun getAllTimestamps(): List<Timestamp>
 }

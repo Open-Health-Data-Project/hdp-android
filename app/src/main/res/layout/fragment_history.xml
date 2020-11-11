@@ -16,9 +16,9 @@
         android:paddingVertical="8dp"
         android:text="Select timer"
         android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Category" />
-
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview_history"
@@ -27,7 +27,8 @@
         android:orientation="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/timer_selector" />
+        app:layout_constraintTop_toBottomOf="@+id/timer_selector"
+        tools:listitem="@layout/item_time_entry" />
 
     <TextView
         android:id="@+id/no_stopwatches"
@@ -41,5 +42,15 @@
         android:textColor="@color/black"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Category" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
