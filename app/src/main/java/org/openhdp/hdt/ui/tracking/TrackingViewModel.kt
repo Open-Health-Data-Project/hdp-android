@@ -7,16 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import org.openhdp.hdt.data.StopwatchRepository
-import org.openhdp.hdt.data.dao.CategoryDAO
-import org.openhdp.hdt.data.dao.TimestampDAO
-import org.openhdp.hdt.data.entities.Category
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.data.entities.Timestamp
-import org.openhdp.hdt.ui.settings.StartOfDay
 import org.openhdp.hdt.ui.settings.StartOfDayUseCase
 import org.openhdp.hdt.ui.tracking.addCounter.AddStopwatchViewState
 import timber.log.Timber
-import java.lang.Math.abs
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
@@ -24,9 +19,8 @@ import kotlin.collections.ArrayList
 
 class TrackingViewModel @ViewModelInject constructor(
     private val stopwatchRepository: StopwatchRepository,
-    private val categoryDAO: CategoryDAO,
-    private val timestampDAO: TimestampDAO,
-    private val startOfDayUseCase: StartOfDayUseCase
+    private val startOfDayUseCase: StartOfDayUseCase,
+    private val trackingItemsMapper: TrackingItemsMapper
 ) : ViewModel(), OnItemClickListener {
 
     private val _viewState = MutableLiveData<TrackingViewState>()
@@ -36,18 +30,18 @@ class TrackingViewModel @ViewModelInject constructor(
 
     private var job: Job? = null
 
-
     fun initialize() {
         viewModelScope.launch(Dispatchers.Main) {
             runCatching {
-                val stopwatches = stopwatchRepository.stopwatchDAO.getAllStopwatchesInOrder()
-                val categories = categoryDAO.getAllCategoriesOrdered()
+                val stopwatches = stopwatchRepository.stopwatches()
+                val categories = stopwatchRepository.categories()
                 val startOfDay = startOfDayUseCase.getCurrentStartOfDay()
-                stopwatches.mapNotNull { it.asTrackingItem(categories, startOfDay) }
+                trackingItemsMapper.toTrackingItems(stopwatches, categories, startOfDay)
             }.onFailure {
-                Timber.e(it, "initialize() failure ")
                 _viewState.value = TrackingViewState.Error(it)
+                println("stopwatches error $it")
             }.onSuccess { stopwatches ->
+                println("stopwatches = ${stopwatches.joinToString { it.name }}")
                 if (stopwatches.isEmpty()) {
                     _viewState.value = TrackingViewState.NoStopwatches
                 } else {
@@ -58,61 +52,6 @@ class TrackingViewModel @ViewModelInject constructor(
         }
     }
 
-    private suspend fun Stopwatch.asTrackingItem(
-        categories: List<Category>,
-        startOfDay: StartOfDay
-    ): TrackingItem? {
-        try {
-            val stopWatchId = this.id
-            val category = categories.firstOrNull { this.categoryId == it.id } ?: return null
-
-            val now = Date()
-            val currentTimeInMillis = now.time
-
-            val startOfDayDate = Date(now.time)
-            startOfDayDate.hours = startOfDay.hours
-            startOfDayDate.minutes = startOfDay.minutes
-
-
-            var totalTimeInMillis = 0L
-            var stopWatchRunning = false
-
-            val timestamps = timestampDAO.getTimestampsFrom(stopWatchId)
-            val millisAfterReset = StartOfDayTimeCalculator().calculate(startOfDay, timestamps, now)
-
-            timestamps.forEachIndexed { index, timestamp ->
-                val stopTime = timestamp.stopTime
-                val startTime = timestamp.startTime
-                val startDate = Date(startTime)
-
-                if (stopTime != null) {
-                    //timer was paused before
-                    totalTimeInMillis += kotlin.math.abs(stopTime - startTime)
-                } else {
-
-//                    val timeoutInMillis = TimeUnit.HOURS.toMillis(16L)
-//                    val lastActivityDurationTillNow = kotlin.math.abs(currentTime - it.startTime)
-                    totalTimeInMillis += kotlin.math.abs(currentTimeInMillis - startTime)
-                    if (timestamps.lastIndex == index) {
-                        stopWatchRunning = true
-                    } //make it still running
-                }
-            }
-
-            return TrackingItem(
-                id,
-                name,
-                category.name,
-                millisAfterReset,
-                buttonState = PlaybackButtonState(if (stopWatchRunning) TrackState.ACTIVE else TrackState.INACTIVE),
-                startOfDay,
-                category.color
-            )
-        } catch (throwable: Throwable) {
-            Timber.e(throwable, "failed to map to tracking item")
-            return null
-        }
-    }
 
     private suspend fun stopCountdown() {
         runCatching { job?.cancelAndJoin() }.onFailure {
@@ -186,12 +125,12 @@ class TrackingViewModel @ViewModelInject constructor(
             val toggleTime = Date().time
 
             runCatching {
-                val timestamp = timestampDAO.lastTimestampOf(item.stopwatchId)
+                val timestamp = stopwatchRepository.lastTimestampOf(item.stopwatchId)
                 if (timestamp != null && timestamp.stopTime == null) {
-                    timestampDAO.updateTimestamp(timestamp.id, toggleTime)
+                    stopwatchRepository.updateTimestamp(timestamp.id, toggleTime)
                     TrackState.INACTIVE
                 } else {
-                    timestampDAO.createTimestamp(
+                    stopwatchRepository.createTimestamp(
                         Timestamp(
                             item.stopwatchId,
                             toggleTime
@@ -270,9 +209,9 @@ class TrackingViewModel @ViewModelInject constructor(
         viewModelScope.launch(Dispatchers.Main) {
             stopCountdown()
             runCatching {
-                val count = stopwatchRepository.stopwatchDAO.getAllStopwatchesCount()
+                val count = stopwatchRepository.totalStopwatchesCount()
                 val stopwatch = Stopwatch(count + 1, item.name, selectedCategoryId)
-                stopwatchRepository.stopwatchDAO.createStopwatch(stopwatch)
+                stopwatchRepository.createStopwatch(stopwatch)
             }.onFailure {
                 Timber.e(it, "onCounterAdded($item) failure ")
                 _viewState.postValue(TrackingViewState.Error(it))

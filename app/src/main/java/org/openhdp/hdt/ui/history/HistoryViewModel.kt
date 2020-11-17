@@ -18,8 +18,7 @@ class HistoryViewModel @ViewModelInject constructor(
         viewModelScope.launch(Dispatchers.Main) {
             runCatching {
                 stopwatchRepository
-                    .stopwatchDAO
-                    .getAllStopwatchesInOrder()
+                    .stopwatches()
             }.onSuccess { stopwatches ->
                 pushState<HistoryViewState> {
                     if (stopwatches.isEmpty()) {
@@ -38,8 +37,7 @@ class HistoryViewModel @ViewModelInject constructor(
         viewModelScope.launch(Dispatchers.Main) {
             runCatching {
                 stopwatchRepository
-                    .timestampDAO
-                    .getTimestampsFrom(stopwatch.id)
+                    .timestamps(stopwatch.id)
             }.onSuccess { timestamps ->
                 pushState<HistoryViewState> {
                     if (timestamps.isEmpty()) {
