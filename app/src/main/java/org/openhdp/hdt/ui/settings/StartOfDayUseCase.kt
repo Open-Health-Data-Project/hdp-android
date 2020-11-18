@@ -2,11 +2,14 @@ package org.openhdp.hdt.ui.settings
 
 import android.app.Application
 import android.content.Context
+import org.openhdp.hdt.ui.tracking.StartOfDayTimeCalculator
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.min
 
-class StartOfDayUseCase @Inject constructor(private val application: Application) {
+class StartOfDayUseCase @Inject constructor(
+    private val application: Application
+) {
 
     companion object {
         const val KEY_START_OF_DAY = "KEY_START_OF_DAY"

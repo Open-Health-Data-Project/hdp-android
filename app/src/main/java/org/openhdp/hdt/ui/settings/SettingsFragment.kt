@@ -12,7 +12,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.openhdp.hdt.BuildConfig
-import org.openhdp.hdt.RequestCodes.Companion.EXPORT_TIMESTAMPS
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.databinding.FragmentSettingsBinding
 import org.openhdp.hdt.showText
@@ -108,19 +107,6 @@ class SettingsFragment : Fragment() {
 
     private fun exportAllTimestamps() {
         viewModel.onEvent(SettingsEvent.ExportAllTimestamps)
-    }
-
-    private fun csvIntentOf(name: String): Intent {
-        return Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "text/csv"
-            putExtra(Intent.EXTRA_TITLE, name)
-        }
-    }
-
-    private fun requestExportTimestamps(stopwatch: Stopwatch) {
-        val intent = csvIntentOf("${stopwatch.name}_timestamps")
-        startActivityForResult(intent, EXPORT_TIMESTAMPS)
     }
 
     private fun Uri.share() {
