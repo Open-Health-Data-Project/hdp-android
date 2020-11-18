@@ -25,9 +25,4 @@ abstract class BaseViewModel<ViewState : Any>(initialViewState: ViewState? = nul
     protected fun setState(nextState: ViewState) {
         _viewState.value = nextState
     }
-
-    protected inline fun <reified T : ViewState> whenState(reducer: (T) -> Unit) {
-        val currentState = _viewState.value as? T ?: return
-        reducer.invoke(currentState)
-    }
 }

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "336884311152",
+    "firebase_url": "https://health-data-tracker.firebaseio.com",
+    "project_id": "health-data-tracker",
+    "storage_bucket": "health-data-tracker.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:336884311152:android:ef735ce8c5e1f9d823c0b5",
+        "android_client_info": {
+          "package_name": "org.openhdp.hdt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "336884311152-bvh2ca05rp5eq8sn4j0vp4es0gsr495d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpbLuyXgFumlzTlReIpjzHJACqvXByuwo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "336884311152-bvh2ca05rp5eq8sn4j0vp4es0gsr495d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

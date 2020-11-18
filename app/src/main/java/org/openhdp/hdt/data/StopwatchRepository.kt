@@ -1,6 +1,8 @@
 package org.openhdp.hdt.data
 
 import org.openhdp.hdt.data.dao.*
+import org.openhdp.hdt.data.entities.Stopwatch
+import org.openhdp.hdt.data.entities.Timestamp
 import javax.inject.Inject
 
 class StopwatchRepository @Inject constructor(
@@ -24,4 +26,16 @@ class StopwatchRepository @Inject constructor(
 
     suspend fun totalTimestampsCount() = timestampDAO.getAllTimestampsCount()
 
+    suspend fun createStopwatch(stopwatch: Stopwatch) = stopwatchDAO.createStopwatch(stopwatch)
+
+    suspend fun totalStopwatchesCount() = stopwatchDAO.getAllStopwatchesCount()
+
+    suspend fun lastTimestampOf(stopwatchId: String) = timestampDAO.lastTimestampOf(stopwatchId)
+
+    suspend fun updateTimestamp(id: String, toggleTime: Long) =
+        timestampDAO.updateTimestamp(id, toggleTime)
+
+    suspend fun createTimestamp(timestamp: Timestamp) {
+        timestampDAO.createTimestamp(timestamp)
+    }
 }
