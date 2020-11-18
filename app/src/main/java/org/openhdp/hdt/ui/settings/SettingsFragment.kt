@@ -11,6 +11,7 @@ import android.widget.TimePicker
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import org.openhdp.hdt.BuildConfig
 import org.openhdp.hdt.RequestCodes.Companion.EXPORT_TIMESTAMPS
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.databinding.FragmentSettingsBinding
@@ -42,6 +43,9 @@ class SettingsFragment : Fragment() {
         }
         viewModel.viewState.observe(viewLifecycleOwner, ::renderState)
         viewModel.initialize()
+
+        binding.versionName.text = "Version name: \"${BuildConfig.VERSION_NAME}\""
+        binding.versionCode.text = "Version code: ${BuildConfig.VERSION_CODE}"
     }
 
     private fun renderState(state: SettingsViewState): Any = when (state) {
@@ -101,6 +105,7 @@ class SettingsFragment : Fragment() {
     private fun exportTimestamps(stopwatch: Stopwatch) {
         viewModel.onEvent(SettingsEvent.ExportTimestamps(stopwatch))
     }
+
     private fun exportAllTimestamps() {
         viewModel.onEvent(SettingsEvent.ExportAllTimestamps)
     }
