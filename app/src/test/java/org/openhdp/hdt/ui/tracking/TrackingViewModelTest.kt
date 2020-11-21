@@ -53,8 +53,8 @@ class TrackingViewModelTest {
 
     @Test
     fun `renders stopwatches on initialization`() = runBlockingTest() {
-        val stopwatch1 = Stopwatch(0, "1", 1)
-        val stopwatch2 = Stopwatch(1, "2", 2)
+        val stopwatch1 = Stopwatch(0, "1", "1")
+        val stopwatch2 = Stopwatch(1, "2", "1")
         val category1 = Category(1, "red", 1, Color.RED)
         val category2 = Category(2, "blue", 2, Color.BLUE)
         val startOfDay = StartOfDay(0, 0)
