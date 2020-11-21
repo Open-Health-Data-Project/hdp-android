@@ -3,6 +3,7 @@ package org.openhdp.hdt.data.entities
 import androidx.annotation.ColorInt
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.io.Serializable
 
 @Entity(tableName = "categories")
 data class Category(
@@ -10,8 +11,7 @@ data class Category(
     var name: String,
     var type: Int,
     @ColorInt
-    val color: Int
-) {
-    @PrimaryKey(autoGenerate = true)
-    var id: Int? = null
-}
+    val color: Int,
+    @PrimaryKey
+    val id: String = java.util.UUID.randomUUID().toString()
+) : Serializable

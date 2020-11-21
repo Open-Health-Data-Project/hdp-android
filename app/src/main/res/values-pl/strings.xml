@@ -8,5 +8,6 @@
     <string name="new_counter_label_name">Nazwa</string>
     <string name="new_counter_label_cancel">Anuluj</string>
     <string name="new_counter_label_create">Utwórz</string>
+    <string name="new_counter_label_update">Aktualizuj</string>
 
 </resources>

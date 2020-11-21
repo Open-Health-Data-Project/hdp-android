@@ -19,7 +19,7 @@ import androidx.room.PrimaryKey
 data class Stopwatch(
     var customOrder: Int,
     var name: String,
-    var categoryId: Int,
+    var categoryId: String,
     @PrimaryKey
     val id: String = java.util.UUID.randomUUID().toString()
 )

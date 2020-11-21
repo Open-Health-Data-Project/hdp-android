@@ -11,6 +11,8 @@ sealed class CategoriesViewState {
     data class Results(val categories: List<CategoryItem>) : CategoriesViewState()
 
     data class Error(val issue: Throwable) : CategoriesViewState()
+
+    data class FailedToDeleteCategory(val category: Category) : CategoriesViewState()
 }
 
 sealed class CategoryItem {

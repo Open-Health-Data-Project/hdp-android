@@ -1,5 +1,5 @@
 package org.openhdp.hdt.ui.categories.addCategory
 
-import androidx.annotation.ColorRes
+import androidx.annotation.ColorInt
 
-data class SelectableColor(@ColorRes val color: Int, val selected: Boolean = false)
+data class SelectableColor(@ColorInt val color: Int, val selected: Boolean = false)

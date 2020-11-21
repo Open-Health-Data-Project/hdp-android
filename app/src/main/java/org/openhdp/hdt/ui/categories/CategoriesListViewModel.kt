@@ -9,13 +9,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.dao.CategoryDAO
-import org.openhdp.hdt.data.dao.IndependentCategoriesDAO
 import org.openhdp.hdt.data.entities.Category
 import timber.log.Timber
 
 
 class CategoriesListViewModel @ViewModelInject constructor(
-    val categoriesDAO: CategoryDAO
+    val stopwatchRepository: StopwatchRepository
 ) : ViewModel() {
 
     private val _viewState = MutableLiveData<CategoriesViewState>()
@@ -29,7 +28,7 @@ class CategoriesListViewModel @ViewModelInject constructor(
 
     private fun requestCategoryList() {
         viewModelScope.launch {
-            runCatching { categoriesDAO.getAllCategoriesOrdered() }
+            runCatching { stopwatchRepository.categories() }
                 .onSuccess { categories ->
                     if (categories.isEmpty()) {
                         _viewState.value = CategoriesViewState.NoCategories
@@ -45,44 +44,37 @@ class CategoriesListViewModel @ViewModelInject constructor(
         }
     }
 
-    fun addNewCategory(category: Category) {
-        Timber.d("add new category $category")
+    fun addOrUpdateCategory(category: Category) {
         _viewState.value = CategoriesViewState.Loading
         viewModelScope.launch(Dispatchers.Main) {
-            runCatching { categoriesDAO.createCategory(category) }
-                .onSuccess { requestCategoryList() }
+            runCatching {
+                stopwatchRepository.createOrUpdateCategory(category)
+            }.onSuccess { requestCategoryList() }
                 .onFailure {
-                    Timber.e(it, "failed to add category")
+                    Timber.e(it, "failed to add/update category")
                     _viewState.value = CategoriesViewState.Error(it)
                 }
         }
     }
 
-    fun deleteCategory(categoryItem: CategoryItem) {
-        if (categoryItem is CategoryItem.Manual) {
-
-            _viewState.value = CategoriesViewState.Loading
+    fun attemptRemove(it: CategoryItem) {
+        if (it is CategoryItem.Manual) {
+            val category = it.category
+            val categoryId = category.id
             viewModelScope.launch {
-                val cat = categoryItem.category
-                runCatching { categoriesDAO.deleteCategory(cat) }
-                    .onSuccess { requestCategoryList() }
-                    .onFailure {
-                        Timber.e(it, "failed to remove category")
-
-                        _viewState.value = CategoriesViewState.Error(it)
+                runCatching {
+                    val stopwatchesAffected = stopwatchRepository.stopwatches().filter {
+                        it.categoryId == categoryId
                     }
+                    if (stopwatchesAffected.isEmpty()) {
+                        stopwatchRepository.deleteCategory(category)
+                        requestCategoryList()
+                    } else {
+                        // delete is dangerous, prompt to delete stopwatches affected first
+                        _viewState.value = CategoriesViewState.FailedToDeleteCategory(category)
+                    }
+                }.onFailure { _viewState.value = CategoriesViewState.Error(it) }
             }
-        } else {
-            Timber.w("delete not supported for $categoryItem")
-        }
-    }
-
-    fun updateCategory(category: Category) {
-        _viewState.value = CategoriesViewState.Loading
-        viewModelScope.launch {
-            runCatching { categoriesDAO.deleteCategory(category) }
-                .onSuccess { requestCategoryList() }
-                .onFailure { _viewState.value = CategoriesViewState.Error(it) }
         }
     }
 }

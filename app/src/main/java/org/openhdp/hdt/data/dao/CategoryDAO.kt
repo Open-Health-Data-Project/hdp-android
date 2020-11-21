@@ -6,7 +6,7 @@ import org.openhdp.hdt.data.entities.Category
 
 @Dao
 interface CategoryDAO {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun createCategory(category: Category)
 
     @Update
@@ -15,8 +15,8 @@ interface CategoryDAO {
     @Delete
     suspend fun deleteCategory(category: Category)
 
-    @Query("SELECT * FROM categories ORDER BY customOrder")
-    fun getAllCategoriesInOrder(): LiveData<List<Category>>
+    @Query("SELECT * FROM categories WHERE id=:id")
+    suspend fun findCategory(id: String): Category?
 
     @Query("SELECT * FROM categories ORDER BY customOrder")
     suspend fun getAllCategoriesOrdered(): List<Category>

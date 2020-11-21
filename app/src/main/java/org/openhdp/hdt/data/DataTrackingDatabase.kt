@@ -8,7 +8,7 @@ import org.openhdp.hdt.data.entities.*
 @Database(
     entities = [Stopwatch::class, Category::class, Timestamp::class,
         DailyChangedDuration::class, IndependentCategories::class],
-    version = 9
+    version = 10
     )
 abstract class DataTrackingDatabase : RoomDatabase() {
 

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -25,9 +26,8 @@ class CategoriesListFragment : Fragment(R.layout.fragment_categories_list) {
 
     private val viewModel: CategoriesListViewModel by viewModels()
 
-    private val radius: Float by lazy {
-        resources.getDimension(R.dimen.cardview_corner_size)
-    }
+    private val radius: Float
+        get() = resources.getDimension(R.dimen.cardview_corner_size)
 
     private lateinit var adapter: CategoriesAdapter
     private lateinit var binding: FragmentCategoriesListBinding
@@ -45,16 +45,16 @@ class CategoriesListFragment : Fragment(R.layout.fragment_categories_list) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.viewState.observe(viewLifecycleOwner, ::renderState)
-        binding.fabAddCategory.setOnClickListener { addNewCategory() }
+        binding.fabAddCategory.setOnClickListener { addOrEditCategory() }
         viewModel.initialize()
     }
 
-    private fun addNewCategory() {
-        val bottomSheet = AddCategoryBottomSheetFragment()
+    private fun addOrEditCategory(category: Category? = null) {
+        val bottomSheet = AddCategoryBottomSheetFragment.newInstance(category)
         bottomSheet.listener = object : AddCategoryBottomSheetFragment.Listener {
 
             override fun onAdded(item: Category) {
-                viewModel.addNewCategory(item)
+                viewModel.addOrUpdateCategory(item)
             }
         }
         bottomSheet.show(childFragmentManager, "add_category")
@@ -78,17 +78,15 @@ class CategoriesListFragment : Fragment(R.layout.fragment_categories_list) {
             if (binding.recyclerCategories.adapter == null) {
                 adapter = CategoriesAdapter(
                     radius = radius,
-                    onBrowse = {
-                        Toast.makeText(requireContext(), "item $it", Toast.LENGTH_SHORT).show()
+                    onClick = {
+                        if (it is CategoryItem.Manual) {
+                            addOrEditCategory(it.category)
+                        }
                     },
-                    onRemove = {
-                        Toast.makeText(
-                            requireContext(),
-                            "Remove not supported in this version",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        // temporarily delete category
-                        // viewModel.deleteCategory(it)
+                    onLongClick = { item ->
+                        showDeleteCategoryDialog(item) {
+                            viewModel.attemptRemove(item)
+                        }
                     }
                 )
                 binding.recyclerCategories.adapter = adapter
@@ -103,6 +101,33 @@ class CategoriesListFragment : Fragment(R.layout.fragment_categories_list) {
                 Toast.LENGTH_SHORT
             ).show()
         }
+        is CategoriesViewState.FailedToDeleteCategory -> {
+            showFailedToDeleteCategory(state.category.name)
+        }
+    }
+
+    private fun showDeleteCategoryDialog(
+        item: CategoryItem,
+        onDelete: (CategoryItem.Manual) -> Unit
+    ) {
+        if (item !is CategoryItem.Manual) return
+        AlertDialog.Builder(requireContext())
+            .setMessage("Are you sure to delete category \'${item.category.name}\'?")
+            .setPositiveButton("OK") { dialog, _ ->
+                onDelete.invoke(item)
+                dialog.dismiss()
+            }.setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun showFailedToDeleteCategory(name: String) {
+        AlertDialog.Builder(requireContext())
+            .setMessage("Category \'$name\' has existing stopwatches.\nDelete them first to proceed")
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }.show()
     }
 }
 
@@ -124,7 +149,8 @@ val diffUtil = object : DiffUtil.ItemCallback<CategoryItem>() {
     override fun areContentsTheSame(oldItem: CategoryItem, newItem: CategoryItem): Boolean {
         return when {
             oldItem is CategoryItem.Manual && newItem is CategoryItem.Manual -> {
-                oldItem.category.name == newItem.category.name
+                oldItem.category.name == newItem.category.name &&
+                        oldItem.category.color == newItem.category.color
             }
             oldItem is CategoryItem.Independent && newItem is CategoryItem.Independent -> {
                 oldItem.name == newItem.name
@@ -138,8 +164,8 @@ val diffUtil = object : DiffUtil.ItemCallback<CategoryItem>() {
 
 class CategoriesAdapter(
     val radius: Float,
-    val onBrowse: (CategoryItem) -> Unit,
-    val onRemove: (CategoryItem) -> Unit
+    val onClick: (CategoryItem) -> Unit,
+    val onLongClick: (CategoryItem) -> Unit
 ) : ListAdapter<CategoryItem, CategoryViewHolder>(diffUtil) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
@@ -152,11 +178,11 @@ class CategoriesAdapter(
         val item = (getItem(position) as? CategoryItem.Manual) ?: return
         holder.bind(item)
         holder.itemView.setOnLongClickListener {
-            onRemove.invoke(item)
+            onLongClick.invoke(item)
             true
         }
         holder.itemView.setOnClickListener {
-            onBrowse.invoke(item)
+            onClick.invoke(item)
         }
     }
 }
