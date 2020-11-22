@@ -37,7 +37,7 @@ class StopwatchDetailViewModel @ViewModelInject constructor(
                 if (it.isInEditMode) {
                     updateStopwatchIfPossible(it.stopwatchName)
                 }
-                it.copy(isInEditMode = !it.isInEditMode)
+                it.copy(isInEditMode = !it.isInEditMode, errorMessage = null)
             } else {
                 it.copy(errorMessage = "Name cannot be empty")
             }
