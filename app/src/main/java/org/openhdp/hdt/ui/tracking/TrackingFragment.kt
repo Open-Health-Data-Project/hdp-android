@@ -8,12 +8,12 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_IDLE
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import org.openhdp.hdt.databinding.FragmentTrackingBinding
 import org.openhdp.hdt.ui.tracking.addCounter.AddElementBottomSheetFragment
 import org.openhdp.hdt.ui.tracking.addCounter.AddStopwatchViewState
@@ -23,7 +23,7 @@ import timber.log.Timber
 @AndroidEntryPoint
 class TrackingFragment : Fragment() {
 
-    private val viewModel: TrackingViewModel by viewModels()
+    val viewModel: TrackingViewModel by viewModels()
 
     private lateinit var binding: FragmentTrackingBinding
     private lateinit var adapter: DashboardItemsAdapter
@@ -42,10 +42,8 @@ class TrackingFragment : Fragment() {
 
         setupGridView()
         setupAddTimerButton()
-
-        viewModel.initialize()
-
         viewModel.viewState.observe(viewLifecycleOwner, ::renderState)
+        viewModel.initialize()
     }
 
     private fun setupAddTimerButton() {
@@ -63,7 +61,6 @@ class TrackingFragment : Fragment() {
 
     private fun setupGridView() {
         //val touchHelper = ItemTouchHelper(itemTouchCallback())
-
         adapter = DashboardItemsAdapter().apply {
             listener = object : OnItemClickListener {
                 override fun toggleTimer(item: TrackingItem) {
@@ -71,7 +68,10 @@ class TrackingFragment : Fragment() {
                 }
 
                 override fun onSettingsClick(item: TrackingItem) {
-                    viewModel.onSettingsClick(item)
+                    Timber.d("onSettingsClick $item")
+                    findNavController().navigate(
+                        TrackingFragmentDirections.navigateToStopwatchDetail(item)
+                    )
                 }
             }
             dragChangeListener = object : OnDragChangeListener {

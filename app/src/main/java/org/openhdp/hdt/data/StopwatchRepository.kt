@@ -29,6 +29,14 @@ class StopwatchRepository @Inject constructor(
 
     suspend fun createStopwatch(stopwatch: Stopwatch) = stopwatchDAO.createStopwatch(stopwatch)
 
+    suspend fun updateStopwatchName(stopwatchId: String, stopwatchName: String) =
+        with(stopwatchDAO) {
+            findStopwatch(stopwatchId)?.let {
+                updateStopwatch(it.copy(name = stopwatchName))
+            }
+
+        }
+
     suspend fun totalStopwatchesCount() = stopwatchDAO.getAllStopwatchesCount()
 
     suspend fun lastTimestampOf(stopwatchId: String) = timestampDAO.lastTimestampOf(stopwatchId)
@@ -49,4 +57,10 @@ class StopwatchRepository @Inject constructor(
     }
 
     suspend fun deleteCategory(category: Category) = categoryDAO.deleteCategory(category)
+
+    suspend fun deleteStopwatch(stopwatchId: String) = with(stopwatchDAO) {
+        findStopwatch(stopwatchId)?.let {
+            stopwatchDAO.deleteStopwatch(it)
+        }
+    }
 }

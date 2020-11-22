@@ -3,6 +3,7 @@ package org.openhdp.hdt.ui.settings
 import android.app.Application
 import android.content.Context
 import org.openhdp.hdt.ui.tracking.StartOfDayTimeCalculator
+import java.io.Serializable
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.min
@@ -35,7 +36,7 @@ class StartOfDayUseCase @Inject constructor(
     }
 }
 
-data class StartOfDay(val hours: Int, val minutes: Int) {
+data class StartOfDay(val hours: Int, val minutes: Int) : Serializable {
 
     fun totalMinutes(): Int = hours * 60 + minutes
 

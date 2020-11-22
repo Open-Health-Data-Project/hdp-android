@@ -18,6 +18,9 @@ interface StopwatchDAO {
     @Query("SELECT * FROM stopwatches ORDER BY customOrder")
     suspend fun getAllStopwatchesInOrder(): List<Stopwatch>
 
+    @Query("SELECT * FROM stopwatches WHERE id=:id")
+    suspend fun findStopwatch(id: String): Stopwatch?
+
     @Query("SELECT COUNT() FROM stopwatches")
     suspend fun getAllStopwatchesCount(): Int
 
