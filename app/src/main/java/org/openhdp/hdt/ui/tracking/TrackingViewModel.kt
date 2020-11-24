@@ -9,6 +9,7 @@ import kotlinx.coroutines.*
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.data.entities.Timestamp
+import org.openhdp.hdt.data.enums.PrivacyState
 import org.openhdp.hdt.ui.settings.StartOfDayUseCase
 import org.openhdp.hdt.ui.tracking.addCounter.AddStopwatchViewState
 import timber.log.Timber
@@ -211,7 +212,7 @@ class TrackingViewModel @ViewModelInject constructor(
             stopCountdown()
             runCatching {
                 val count = stopwatchRepository.totalStopwatchesCount()
-                val stopwatch = Stopwatch(count + 1, item.name, selectedCategoryId)
+                val stopwatch = Stopwatch(count + 1, item.name, selectedCategoryId, PrivacyState.PRIVATE, null, null)
                 stopwatchRepository.createStopwatch(stopwatch)
             }.onFailure {
                 Timber.e(it, "onCounterAdded($item) failure ")

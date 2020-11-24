@@ -1,9 +1,9 @@
 package org.openhdp.hdt.data.entities
 
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
-import androidx.room.PrimaryKey
+import androidx.room.*
+import org.openhdp.hdt.data.enums.Converters
+import org.openhdp.hdt.data.enums.ExtraDataType
+import org.openhdp.hdt.data.enums.PrivacyState
 
 
 @Entity(
@@ -20,6 +20,11 @@ data class Stopwatch(
     var customOrder: Int,
     var name: String,
     var categoryId: String,
+    @TypeConverters(Converters::class)
+    var privacyState: PrivacyState,
+    var sharedName: String?,
+    @TypeConverters(Converters::class)
+    var extraDataType: ExtraDataType?,
     @PrimaryKey
     val id: String = java.util.UUID.randomUUID().toString()
 )
