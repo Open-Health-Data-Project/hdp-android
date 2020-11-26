@@ -4,7 +4,7 @@
 ![GitHub issues](https://img.shields.io/github/issues/Open-Health-Data-Project/hdp-android)
 ![Project license](https://img.shields.io/github/license/Open-Health-Data-Project/hdp-android)
 ![GitHub build](https://img.shields.io/circleci/build/github/Open-Health-Data-Project/hdp-android/master)
-<!--- ![GitHub release](https://img.shields.io/github/v/release/Open-Health-Data-Project/hdp-android) --->
+![GitHub release](https://img.shields.io/github/v/release/Open-Health-Data-Project/hdp-android)
 
 Health Data Tracker is an Android app that allows users to track their data mostly related to (but not limited to) health. That includes actions such as:
 * measuring the time of different activities 
@@ -33,16 +33,7 @@ To install Health Data Tracker, follow these steps:
 <!--- To use <project_name>, follow these steps: --->
 ## Contributing to Health Data Tracker
 
-To contribute to Health Data Tracker, follow these steps:
-
-1. Fork this repository.
-2. Choose feature to implement from Issues page.
-3. Create a branch: `git checkout -b feature-<feature-name>`.
-4. Make your changes and commit them: `git commit -m '[Add/Modify/Start working on] feature <feature-name>'`
-5. Push to the created branch.
-6. Create the pull request.
-
-If you want to join to our organization or you have any questions contact me on e-mail.
+You can found these informations in our ![CONTRIBUTING file](https://github.com/Open-Health-Data-Project/hdp-android/blob/develop/CONTRIBUTING.md)
 
 ## Contributors
 
