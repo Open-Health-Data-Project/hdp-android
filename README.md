@@ -13,6 +13,9 @@ Health Data Tracker is an Android app that allows users to track their data most
 
 All of this with the possibility to use only trackers that you want. **Currently app is under development.**
 
+![Main_screen](http://foto.hostuje.org/x/ee114f874ca173b59e1aad90a52c75c2.jpg)
+![Settings screen](http://foto.hostuje.org/x/a6ce3915fb9dfea2630ab9f9f17167ed.jpg)
+
 ## Prerequisites
 
 Before you begin, ensure you have met the following requirements:
