@@ -1,7 +1,5 @@
 package org.openhdp.hdt.ui.categories.addCategory
 
-import androidx.annotation.ColorInt
-import androidx.annotation.ColorRes
 import org.openhdp.hdt.data.entities.Category
 
 data class AddCategoryViewState(
@@ -12,17 +10,16 @@ data class AddCategoryViewState(
     val added: Boolean = false,
     val cancelled: Boolean = false
 ) {
-    fun asCategory(mapper: ColorMapper): Category {
+    fun asCategory(): Category {
         return Category(
             0,
             name,
             0,
-            mapper.transform(requireNotNull(colors.first { it.selected }.color))
+            currentColor()
         )
     }
-}
 
-interface ColorMapper {
-    @ColorInt
-    fun transform(@ColorRes resId: Int): Int
+    fun currentColor(): Int {
+        return colors.first { it.selected }.color
+    }
 }

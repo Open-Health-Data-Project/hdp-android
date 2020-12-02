@@ -3,6 +3,7 @@ package org.openhdp.hdt.data
 import org.openhdp.hdt.data.dao.*
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.data.entities.Timestamp
+import org.openhdp.hdt.data.entities.Category
 import javax.inject.Inject
 
 class StopwatchRepository @Inject constructor(
@@ -38,4 +39,14 @@ class StopwatchRepository @Inject constructor(
     suspend fun createTimestamp(timestamp: Timestamp) {
         timestampDAO.createTimestamp(timestamp)
     }
+
+    suspend fun createOrUpdateCategory(category: Category) {
+        if (categoryDAO.findCategory(category.id) != null) {
+            categoryDAO.updateCategory(category)
+        } else {
+            categoryDAO.createCategory(category)
+        }
+    }
+
+    suspend fun deleteCategory(category: Category) = categoryDAO.deleteCategory(category)
 }
