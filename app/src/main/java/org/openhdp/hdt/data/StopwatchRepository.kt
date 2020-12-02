@@ -57,7 +57,7 @@ class StopwatchRepository @Inject constructor(
     }
 
     suspend fun deleteCategory(category: Category) = categoryDAO.deleteCategory(category)
-
+  
     suspend fun deleteStopwatch(stopwatchId: String) = with(stopwatchDAO) {
         findStopwatch(stopwatchId)?.let {
             stopwatchDAO.deleteStopwatch(it)
