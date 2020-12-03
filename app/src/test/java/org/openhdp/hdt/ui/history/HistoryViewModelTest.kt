@@ -90,4 +90,5 @@ class HistoryViewModelTest {
         )
     }
 
+    fun HistoryViewModel.initialize() = initialize(null)
 }
