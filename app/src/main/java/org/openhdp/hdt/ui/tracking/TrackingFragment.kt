@@ -67,10 +67,15 @@ class TrackingFragment : Fragment() {
                     viewModel.toggleTimer(item)
                 }
 
-                override fun onSettingsClick(item: TrackingItem) {
-                    Timber.d("onSettingsClick $item")
+                override fun onTimerTapped(item: TrackingItem) {
                     findNavController().navigate(
                         TrackingFragmentDirections.navigateToStopwatchDetail(item)
+                    )
+                }
+
+                override fun onHistoryButtonClick(item: TrackingItem) {
+                    findNavController().navigate(
+                        TrackingFragmentDirections.navigateToStopwatchHistory(item)
                     )
                 }
             }
