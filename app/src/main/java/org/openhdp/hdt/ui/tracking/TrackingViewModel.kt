@@ -9,6 +9,7 @@ import kotlinx.coroutines.*
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.data.entities.Timestamp
+import org.openhdp.hdt.data.enums.PrivacyState
 import org.openhdp.hdt.ui.settings.StartOfDayUseCase
 import org.openhdp.hdt.ui.tracking.addCounter.AddStopwatchViewState
 import timber.log.Timber
@@ -21,7 +22,7 @@ class TrackingViewModel @ViewModelInject constructor(
     private val stopwatchRepository: StopwatchRepository,
     private val startOfDayUseCase: StartOfDayUseCase,
     private val trackingItemsMapper: TrackingItemsMapper
-) : ViewModel(), OnItemClickListener {
+) : ViewModel() {
 
     private val _viewState = MutableLiveData<TrackingViewState>()
 
@@ -31,6 +32,7 @@ class TrackingViewModel @ViewModelInject constructor(
     private var job: Job? = null
 
     fun initialize() {
+        runBlocking { stopCountdown() }
         viewModelScope.launch(Dispatchers.Main) {
             runCatching {
                 val stopwatches = stopwatchRepository.stopwatches()
@@ -39,9 +41,7 @@ class TrackingViewModel @ViewModelInject constructor(
                 trackingItemsMapper.toTrackingItems(stopwatches, categories, startOfDay)
             }.onFailure {
                 _viewState.value = TrackingViewState.Error(it)
-                println("stopwatches error $it")
             }.onSuccess { stopwatches ->
-                println("stopwatches = ${stopwatches.joinToString { it.name }}")
                 if (stopwatches.isEmpty()) {
                     _viewState.value = TrackingViewState.NoStopwatches
                 } else {
@@ -55,7 +55,7 @@ class TrackingViewModel @ViewModelInject constructor(
 
     private suspend fun stopCountdown() {
         runCatching { job?.cancelAndJoin() }.onFailure {
-            Timber.d("failed cancel job")
+            Timber.d("failed to cancel job $it")
         }
     }
 
@@ -105,7 +105,7 @@ class TrackingViewModel @ViewModelInject constructor(
     }
 
 
-    override fun toggleTimer(item: TrackingItem) {
+    fun toggleTimer(item: TrackingItem) {
         Timber.d("toggle timer, current state is ${item.buttonState.trackState.name}")
 
         onState<TrackingViewState.Results> { state ->
@@ -142,7 +142,6 @@ class TrackingViewModel @ViewModelInject constructor(
                 .onFailure {
                     Timber.e(it, "failed to update item due to issue $it")
                 }.onSuccess { trackState ->
-
                     onState<TrackingViewState.Results> { state ->
                         val currentItems = state.items
                         val currentItemIndex =
@@ -175,7 +174,7 @@ class TrackingViewModel @ViewModelInject constructor(
         }
     }
 
-    override fun onSettingsClick(item: TrackingItem) {
+    fun onHistoryButtonClick(item: TrackingItem) {
 
     }
 
@@ -210,7 +209,14 @@ class TrackingViewModel @ViewModelInject constructor(
             stopCountdown()
             runCatching {
                 val count = stopwatchRepository.totalStopwatchesCount()
-                val stopwatch = Stopwatch(count + 1, item.name, selectedCategoryId)
+                val stopwatch = Stopwatch(
+                    count + 1,
+                    item.name,
+                    selectedCategoryId,
+                    PrivacyState.PRIVATE,
+                    null,
+                    null
+                )
                 stopwatchRepository.createStopwatch(stopwatch)
             }.onFailure {
                 Timber.e(it, "onCounterAdded($item) failure ")

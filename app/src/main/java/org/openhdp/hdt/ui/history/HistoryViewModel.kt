@@ -14,7 +14,22 @@ class HistoryViewModel @ViewModelInject constructor(
     initialViewState = HistoryViewState.Loading
 ) {
 
-    fun initialize() {
+    fun initialize(stopwatchId: String?) {
+        viewModelScope.launch(Dispatchers.Main) {
+            runCatching {
+                val stopwatch = stopwatchRepository.findStopwatch(stopwatchId)
+                if (stopwatch == null) {
+                    renderAllStopwatches()
+                } else {
+                    onStopwatchClick(stopwatch)
+                }
+            }.onFailure { throwable ->
+                pushState<HistoryViewState> { HistoryViewState.Error(throwable) }
+            }
+        }
+    }
+
+    private fun renderAllStopwatches() {
         viewModelScope.launch(Dispatchers.Main) {
             runCatching {
                 stopwatchRepository

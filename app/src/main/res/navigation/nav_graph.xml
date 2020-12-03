@@ -5,38 +5,39 @@
     app:startDestination="@id/trackingFragment">
 
     <fragment
-        android:id="@+id/mainTrackingFragment"
-        android:name="org.openhdp.hdt.ui.fragments.MainTrackingFragment"
-        android:label="MainTrackingFragment">
-        <action
-            android:id="@+id/action_mainTrackingFragment_to_addElementFragment"
-            app:destination="@id/addElementFragment" />
-        <action
-            android:id="@+id/action_mainTrackingFragment_to_stopwatchDetailFragment"
-            app:destination="@id/stopwatchDetailFragment" />
-        <action
-            android:id="@+id/action_mainTrackingFragment_to_categoriesDetailFragment"
-            app:destination="@id/categoriesDetailFragment" />
-        <action
-            android:id="@+id/action_mainTrackingFragment_to_settingsFragment2"
-            app:destination="@id/settingsFragment" />
-    </fragment>
-    <fragment
         android:id="@+id/addElementFragment"
         android:name="org.openhdp.hdt.ui.fragments.AddElementFragment"
         android:label="AddElementFragment" />
     <fragment
         android:id="@+id/stopwatchDetailFragment"
-        android:name="org.openhdp.hdt.ui.fragments.StopwatchDetailFragment"
+        android:name="org.openhdp.hdt.ui.tracking.stopwatchDetail.StopwatchDetailFragment"
         android:label="StopwatchDetailFragment">
         <action
             android:id="@+id/action_stopwatchDetailFragment_to_historyFragment"
             app:destination="@id/historyFragment" />
+        <argument
+            android:name="stopwatch"
+            app:argType="org.openhdp.hdt.ui.tracking.TrackingItem"
+            app:nullable="false" />
+
+        <action
+            android:id="@+id/navigateToTrackingFragment"
+            app:destination="@id/trackingFragment"
+            app:popUpToInclusive="true" />
     </fragment>
+
     <fragment
         android:id="@+id/historyFragment"
         android:name="org.openhdp.hdt.ui.history.HistoryFragment"
-        android:label="HistoryFragment" />
+        android:label="HistoryFragment">
+
+        <argument
+            android:name="stopwatch"
+            app:argType="org.openhdp.hdt.ui.tracking.TrackingItem"
+            android:defaultValue="@null"
+            app:nullable="true" />
+
+    </fragment>
     <fragment
         android:id="@+id/categoriesDetailFragment"
         android:name="org.openhdp.hdt.ui.fragments.CategoriesDetailFragment"
@@ -53,8 +54,32 @@
         android:id="@+id/settingsFragment"
         android:name="org.openhdp.hdt.ui.settings.SettingsFragment"
         android:label="SettingsFragment" />
+
     <fragment
         android:id="@+id/trackingFragment"
         android:name="org.openhdp.hdt.ui.tracking.TrackingFragment"
-        android:label="DashboardFragment" />
+        android:label="DashboardFragment">
+        <action
+            android:id="@+id/navigateToStopwatchDetail"
+            app:destination="@id/stopwatchDetailFragment">
+
+            <argument
+                android:name="stopwatch"
+                app:argType="org.openhdp.hdt.ui.tracking.TrackingItem"
+                app:nullable="false">
+
+            </argument>
+        </action>
+
+        <action
+            android:id="@+id/navigateToStopwatchHistory"
+            app:destination="@id/historyFragment">
+
+            <argument
+                android:name="stopwatch"
+                app:argType="org.openhdp.hdt.ui.tracking.TrackingItem"
+                app:nullable="true" />
+
+        </action>
+    </fragment>
 </navigation>

@@ -15,9 +15,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.junit.MockitoJUnitRunner
+import org.openhdp.hdt.TestCommons.testStopwatch
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Category
 import org.openhdp.hdt.data.entities.Stopwatch
+import org.openhdp.hdt.data.enums.PrivacyState
 import org.openhdp.hdt.ui.settings.StartOfDay
 import org.openhdp.hdt.ui.settings.StartOfDayUseCase
 import java.lang.IllegalStateException
@@ -37,7 +39,6 @@ class TrackingViewModelTest {
     val mapper = mock<TrackingItemsMapper>()
     val viewStateObserver = mock<Observer<TrackingViewState>>()
 
-
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
@@ -53,8 +54,8 @@ class TrackingViewModelTest {
 
     @Test
     fun `renders stopwatches on initialization`() = runBlockingTest() {
-        val stopwatch1 = Stopwatch(0, "1", "1")
-        val stopwatch2 = Stopwatch(1, "2", "1")
+        val stopwatch1 = testStopwatch(0, "1", "1")
+        val stopwatch2 = testStopwatch(1, "2", "1")
         val category1 = Category(1, "red", 1, Color.RED)
         val category2 = Category(2, "blue", 2, Color.BLUE)
         val startOfDay = StartOfDay(0, 0)

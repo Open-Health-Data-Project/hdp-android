@@ -18,7 +18,8 @@ import java.util.concurrent.TimeUnit
 
 interface OnItemClickListener {
     fun toggleTimer(item: TrackingItem)
-    fun onSettingsClick(item: TrackingItem)
+    fun onTimerTapped(item: TrackingItem)
+    fun onHistoryButtonClick(item: TrackingItem)
 }
 
 interface OnDragChangeListener {
@@ -110,8 +111,15 @@ class DashboardItemViewHolder(
         binding.history.isEnabled = item.buttonState.isEnabled
         binding.history.backgroundTintList = tintList
         binding.history.setOnClickListener {
-            listener?.onSettingsClick(item)
+            listener?.onHistoryButtonClick(item)
         }
+        val onItemClick: (View) -> Unit = {
+            listener?.onTimerTapped(item)
+        }
+        binding.root.setOnClickListener(onItemClick)
+        binding.categoryName.setOnClickListener(onItemClick)
+        binding.timerTime.setOnClickListener(onItemClick)
+        binding.timerName.setOnClickListener(onItemClick)
     }
 
     @SuppressLint("ClickableViewAccessibility")
