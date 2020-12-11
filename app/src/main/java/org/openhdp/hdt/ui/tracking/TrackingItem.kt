@@ -2,6 +2,7 @@ package org.openhdp.hdt.ui.tracking
 
 import androidx.annotation.ColorInt
 import org.openhdp.hdt.ui.settings.StartOfDay
+import java.io.Serializable
 
 
 data class TrackingItem(
@@ -12,7 +13,7 @@ data class TrackingItem(
     val buttonState: PlaybackButtonState,
     val startOfDay: StartOfDay,
     @ColorInt val color: Int
-) {
+) : Serializable {
     fun toggled(isEnabled: Boolean = true): TrackingItem {
         val newState = if (buttonState.trackState == TrackState.ACTIVE) {
             TrackState.INACTIVE
@@ -33,7 +34,8 @@ data class TrackingItem(
 }
 
 
-data class PlaybackButtonState(val trackState: TrackState, val isEnabled: Boolean = true)
+data class PlaybackButtonState(val trackState: TrackState, val isEnabled: Boolean = true) :
+    Serializable
 
 enum class TrackState {
     ACTIVE, INACTIVE

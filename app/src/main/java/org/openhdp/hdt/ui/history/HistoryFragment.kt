@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.navArgs
 import dagger.hilt.android.AndroidEntryPoint
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.databinding.FragmentHistoryBinding
@@ -16,6 +17,9 @@ import org.openhdp.hdt.showText
 
 @AndroidEntryPoint
 class HistoryFragment : Fragment() {
+
+
+    private val args: HistoryFragmentArgs by navArgs()
 
     private var popupMenu: PopupMenu? = null
 
@@ -42,7 +46,9 @@ class HistoryFragment : Fragment() {
 
         viewModel.viewState.observe(viewLifecycleOwner, ::renderState)
 
-        viewModel.initialize()
+        val stopwatchId = args.stopwatch?.stopwatchId
+
+        viewModel.initialize(stopwatchId)
     }
 
     private fun renderState(state: HistoryViewState): Any {

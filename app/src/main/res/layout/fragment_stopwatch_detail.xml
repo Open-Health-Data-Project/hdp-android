@@ -1,15 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
+    <ImageView
+        android:id="@+id/stopwatch_detail_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_close" />
+
+    <ImageView
+        android:id="@+id/stopwatch_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_pencil"
+        tools:srcCompat="@drawable/ic_check" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/stopwatch_name_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="stopwatch detail"
-        android:textColor="#000"
-        android:textSize="22sp"
-        android:textStyle="bold|italic" />
+        android:layout_height="wrap_content"
+        android:hint="Stopwatch name"
+        app:layout_constraintTop_toBottomOf="@+id/stopwatch_detail_close">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/stopwatch_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:enabled="false" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/stopwatch_remove"
+        android:layout_margin="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="delete"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/stopwatch_name_layout" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
