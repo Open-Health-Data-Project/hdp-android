@@ -21,7 +21,6 @@ val diff = object : DiffUtil.ItemCallback<Timestamp>() {
     override fun areContentsTheSame(oldItem: Timestamp, newItem: Timestamp): Boolean {
         return oldItem.id == newItem.id
     }
-
 }
 
 class HistoryEntriesAdapter :

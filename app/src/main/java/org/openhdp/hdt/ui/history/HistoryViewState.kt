@@ -17,7 +17,7 @@ sealed class HistoryViewState {
 
     data class StopwatchesResult(
         val stopwatch: Stopwatch,
-        val timestamps: List<Timestamp>
+        val items: List<DayHeader>
     ) : HistoryViewState()
 
 }
