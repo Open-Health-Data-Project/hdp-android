@@ -31,17 +31,17 @@ class HistoryViewModelTest {
 
     private val testDispatcher = TestCoroutineDispatcher()
 
-
     lateinit var viewModel: HistoryViewModel
 
     val viewStateObserver = mock<Observer<HistoryViewState>>()
 
     val stopwatchRepository = mock<StopwatchRepository>()
+    val useCase = mock<ProvideHistoricEntriesUseCase>()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = HistoryViewModel(stopwatchRepository)
+        viewModel = HistoryViewModel(stopwatchRepository, useCase)
         viewModel.viewState.observeForever(viewStateObserver)
     }
 
@@ -75,9 +75,9 @@ class HistoryViewModelTest {
         val stopwatch1 = testStopwatch(0, "0", "0")
         val stopwatch2 = testStopwatch(1, "1", "1")
         val stopwatches = listOf(stopwatch1, stopwatch2)
-        val timestamps = listOf<Timestamp>(mock(), mock())
+        val timestamps = listOf<DayHeader>(mock(), mock())
         whenever(stopwatchRepository.stopwatches()).doReturn(stopwatches)
-        whenever(stopwatchRepository.timestamps(stopwatch1.id)).doReturn(timestamps)
+        whenever(useCase.execute(stopwatch1.id)).doReturn(timestamps)
 
         viewModel.initialize()
         viewModel.onStopwatchClick(stopwatch1)
