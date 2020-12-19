@@ -29,8 +29,7 @@
             android:id="@+id/expand_button"
             android:layout_width="18dp"
             android:layout_height="wrap_content"
-            android:rotation="-90"
-            app:srcCompat="@drawable/chevron_down" />
+            app:srcCompat="@drawable/ic_pencil" />
 
     </LinearLayout>
 

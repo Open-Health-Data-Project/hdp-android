@@ -3,7 +3,8 @@ package org.openhdp.hdt.ui.history
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Timestamp
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -29,7 +30,7 @@ class ProvideHistoricEntriesUseCase @Inject constructor(
             includeDaysFrom(distinctDay = firstDay, timestamps, result)
         } else {
             // handle range of days
-            val distinctDays = createDistinctDays(firstDay, lastDay)
+            val distinctDays = createDistinctDays(stopwatchId, firstDay, lastDay)
             for (distinctDay in distinctDays) {
                 includeDaysFrom(distinctDay = distinctDay, timestamps, result)
             }
@@ -63,27 +64,42 @@ class ProvideHistoricEntriesUseCase @Inject constructor(
         )
 
     }
+
+    suspend fun createDistinctDays(
+        id: String,
+        firstDay: DistinctDay,
+        lastDay: DistinctDay
+    ): List<DistinctDay> {
+        val list = arrayListOf(firstDay)
+        var temporaryDay = firstDay.incrementDay()
+        while (temporaryDay != lastDay) {
+            val truncatedFirstDate =
+                Date(temporaryDay.year, temporaryDay.month, temporaryDay.dayOfMonth, 0, 0, 0)
+            val endOfDayDate =
+                Date(temporaryDay.year, temporaryDay.month, temporaryDay.dayOfMonth, 23, 59, 59)
+            val timestampsFromThisDay = stopwatchRepository.timestampsFromRange(
+                id,
+                LongRange(truncatedFirstDate.time, endOfDayDate.time)
+            )
+            if (timestampsFromThisDay.isNotEmpty()) {
+                list.add(temporaryDay)
+            }
+            temporaryDay = temporaryDay.incrementDay()
+        }
+        list.add(lastDay)
+        return list
+    }
+
 }
 
 val DAY_FORMAT = SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH)
 
 
-fun createDistinctDays(firstDay: DistinctDay, lastDay: DistinctDay): List<DistinctDay> {
-    val list = arrayListOf(firstDay)
-    var temporaryDay = firstDay.incrementDay()
-    while (temporaryDay != lastDay) {
-        list.add(temporaryDay)
-        temporaryDay = temporaryDay.incrementDay()
-    }
-    list.add(lastDay)
-    return list
-}
-
 fun Timestamp.toCalendarDay(): DistinctDay {
     return Date(startTime).mapTo { DistinctDay.create(it) }
 }
 
-fun <Foo, Bar> Foo.mapTo(mapper: (Foo) -> Bar): Bar = mapper(this)
+fun <Source, Target> Source.mapTo(mapper: (Source) -> Target): Target = mapper(this)
 
 data class DistinctDay(val year: Int, val month: Int, val dayOfMonth: Int) {
 
