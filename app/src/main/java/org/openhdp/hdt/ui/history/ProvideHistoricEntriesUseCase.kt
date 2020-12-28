@@ -11,12 +11,28 @@ import javax.inject.Inject
 class ProvideHistoricEntriesUseCase @Inject constructor(
     private val stopwatchRepository: StopwatchRepository
 ) {
+    //key is the stopwatch id, value is the name of the stopwatch
+    private val stopwatchNames: HashMap<String, String> = HashMap()
 
-    suspend fun execute(stopwatchId: String): List<DayHeader> {
+    private suspend fun resolveStopwatchName(stopwatchId: String): String {
+        val value = stopwatchNames[stopwatchId]
+        if (value == null) {
+            stopwatchRepository.stopwatches().forEach {
+                stopwatchNames[it.id] = it.name
+            }
+        }
+        return stopwatchNames[stopwatchId] ?: ""
+    }
+
+    suspend fun execute(stopwatchId: String? = null): List<DayHeader> {
         val result = arrayListOf<DayHeader>()
-        val totalTimestamps = stopwatchRepository.timestamps(stopwatchId)
-        val timestamps = totalTimestamps.filter { it.stopTime != null }
-            .sortedBy { it.startTime }
+        val totalTimestamps = if (stopwatchId != null) {
+            stopwatchRepository.timestamps(stopwatchId)
+        } else {
+            stopwatchRepository.allTimestamps()
+        }
+
+        val timestamps = totalTimestamps.filter { it.stopTime != null }.sortedBy { it.startTime }
 
         if (timestamps.isEmpty()) {
             return result
@@ -38,7 +54,7 @@ class ProvideHistoricEntriesUseCase @Inject constructor(
         return result
     }
 
-    private fun includeDaysFrom(
+    private suspend fun includeDaysFrom(
         distinctDay: DistinctDay,
         timestamps: List<Timestamp>,
         result: ArrayList<DayHeader>
@@ -58,15 +74,14 @@ class ProvideHistoricEntriesUseCase @Inject constructor(
                         endDate.hours,
                         endDate.minutes
                     )
-                    TimestampEntry(label, it)
+                    TimestampEntry(label, it, resolveStopwatchName(it.stopwatchId))
                 }
             )
         )
-
     }
 
-    suspend fun createDistinctDays(
-        id: String,
+    private suspend fun createDistinctDays(
+        id: String?,
         firstDay: DistinctDay,
         lastDay: DistinctDay
     ): List<DistinctDay> {
@@ -132,6 +147,7 @@ data class DayHeader(
 
 data class TimestampEntry(
     val label: String,
-    val timestamp: Timestamp
+    val timestamp: Timestamp,
+    val stopwatchName: String
 )
 

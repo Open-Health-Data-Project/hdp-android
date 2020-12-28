@@ -20,6 +20,7 @@ class HistoryViewModel @ViewModelInject constructor(
                 val stopwatch = stopwatchRepository.findStopwatch(stopwatchId)
                 if (stopwatch == null) {
                     renderAllStopwatches()
+                    displayHistory()
                 } else {
                     onStopwatchClick(stopwatch)
                 }
@@ -49,15 +50,27 @@ class HistoryViewModel @ViewModelInject constructor(
     }
 
     fun onStopwatchClick(stopwatch: Stopwatch) {
+        displayHistory(stopwatch)
+    }
+
+    private fun displayHistory(stopwatch: Stopwatch? = null) {
         viewModelScope.launch(Dispatchers.Main) {
             runCatching {
-                provideHistoricEntriesUseCase.execute(stopwatch.id)
+                provideHistoricEntriesUseCase.execute(stopwatch?.id)
             }.onSuccess { timestamps ->
                 pushState<HistoryViewState> {
-                    if (timestamps.isEmpty()) {
-                        HistoryViewState.NoStopwatchTimestampsSoFar(stopwatch)
+                    if (stopwatch != null) {
+                        if (timestamps.isEmpty()) {
+                            HistoryViewState.NoStopwatchTimestampsSoFar(stopwatch)
+                        } else {
+                            HistoryViewState.StopwatchesResult(stopwatch, timestamps)
+                        }
                     } else {
-                        HistoryViewState.StopwatchesResult(stopwatch, timestamps)
+                        if (timestamps.isEmpty()) {
+                            HistoryViewState.NoStopwatchTimestampsSoFar(stopwatch)
+                        } else {
+                            HistoryViewState.HistoryResult(timestamps)
+                        }
                     }
                 }
             }.onFailure { throwable ->
@@ -67,16 +80,18 @@ class HistoryViewModel @ViewModelInject constructor(
     }
 
     fun toggleExpand(header: DayHeader) {
-        pushState<HistoryViewState.StopwatchesResult> { result ->
-            result.copy(
-                items = result.items.map {
-                    if (it is DayHeader && it == header) {
-                        it.copy(isExpanded = !it.isExpanded)
-                    } else {
-                        it
-                    }
-                }
-            )
+        val mapper: (DayHeader) -> DayHeader = {
+            if (it == header) {
+                it.copy(isExpanded = !it.isExpanded)
+            } else {
+                it
+            }
+        }
+        val currentState = viewState.value
+        if (currentState is HistoryViewState.StopwatchesResult) {
+            _viewState.value = currentState.copy(items = currentState.items.map(mapper))
+        } else if (currentState is HistoryViewState.HistoryResult) {
+            _viewState.value = currentState.copy(items = currentState.items.map(mapper))
         }
     }
 }

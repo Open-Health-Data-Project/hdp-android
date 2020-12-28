@@ -7,10 +7,14 @@ import org.openhdp.hdt.R
 import org.openhdp.hdt.databinding.ItemHistoryEntryBinding
 import org.openhdp.hdt.databinding.ItemHistoryHeaderBinding
 
-class TimestampEntryItem(val text: String) : BindableItem<ItemHistoryEntryBinding>() {
+class TimestampEntryItem(
+    val text: String,
+    val stopwatchName: String
+) :
+    BindableItem<ItemHistoryEntryBinding>() {
 
     override fun bind(viewBinding: ItemHistoryEntryBinding, position: Int) {
-        viewBinding.label.text = text
+        viewBinding.label.text = "$stopwatchName: $text"
     }
 
     override fun getLayout() = R.layout.item_history_entry

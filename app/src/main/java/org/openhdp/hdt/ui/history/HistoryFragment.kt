@@ -40,7 +40,7 @@ class HistoryFragment : Fragment() {
         }
         val group = ExpandableGroup(header, it.isExpanded)
         val nestedItems = it.entries.map {
-            TimestampEntryItem(it.label)
+            TimestampEntryItem(it.label, it.stopwatchName)
         }
         group.addAll(nestedItems)
         group
@@ -90,7 +90,7 @@ class HistoryFragment : Fragment() {
                 }
             }
             is HistoryViewState.NoStopwatchTimestampsSoFar -> {
-                binding.timerSelector.text = state.stopwatch.name
+                binding.timerSelector.text = state.stopwatch?.name
                 adapter.submitList(emptyList())
                 requireActivity().showText("No timestamps so far")
             }
@@ -102,6 +102,12 @@ class HistoryFragment : Fragment() {
             }
             is HistoryViewState.Error -> {
                 requireActivity().showText("Error ${state.throwable}")
+            }
+            is HistoryViewState.HistoryResult -> {
+                binding.timerSelector.text = "History"
+                groupieSection.update(state.items.map {
+                    renderer.invoke(it)
+                })
             }
         }
     }
