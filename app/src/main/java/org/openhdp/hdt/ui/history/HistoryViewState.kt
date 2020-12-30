@@ -11,13 +11,17 @@ sealed class HistoryViewState {
 
     data class Error(val throwable: Throwable) : HistoryViewState()
 
-    data class NoStopwatchTimestampsSoFar(val stopwatch: Stopwatch) : HistoryViewState()
+    data class NoStopwatchTimestampsSoFar(val stopwatch: Stopwatch?) : HistoryViewState()
 
     data class Stopwatches(val stopwatches: List<Stopwatch>) : HistoryViewState()
 
     data class StopwatchesResult(
         val stopwatch: Stopwatch,
-        val timestamps: List<Timestamp>
+        val items: List<DayHeader>
+    ) : HistoryViewState()
+
+    data class HistoryResult(
+        val items: List<DayHeader>
     ) : HistoryViewState()
 
 }

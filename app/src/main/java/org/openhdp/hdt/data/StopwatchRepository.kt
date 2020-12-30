@@ -25,7 +25,6 @@ class StopwatchRepository @Inject constructor(
         } else {
             return stopwatchDAO.findStopwatch(id)
         }
-
     }
 
     suspend fun stopwatches() = stopwatchDAO.getAllStopwatchesInOrder()
@@ -38,12 +37,19 @@ class StopwatchRepository @Inject constructor(
 
     suspend fun createStopwatch(stopwatch: Stopwatch) = stopwatchDAO.createStopwatch(stopwatch)
 
+    suspend fun timestampsFromRange(stopwatchId: String?, dateRange: LongRange): List<Timestamp> {
+        return if (stopwatchId == null) {
+            timestampDAO.getTimestampsFromRange(dateRange.first, dateRange.last)
+        } else {
+            timestampDAO.getTimestampsFromRange(stopwatchId, dateRange.first, dateRange.last)
+        }
+    }
+
     suspend fun updateStopwatchName(stopwatchId: String, stopwatchName: String) =
         with(stopwatchDAO) {
             findStopwatch(stopwatchId)?.let {
                 updateStopwatch(it.copy(name = stopwatchName))
             }
-
         }
 
     suspend fun totalStopwatchesCount() = stopwatchDAO.getAllStopwatchesCount()
