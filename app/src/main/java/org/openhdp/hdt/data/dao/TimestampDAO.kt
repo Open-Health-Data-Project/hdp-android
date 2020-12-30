@@ -24,10 +24,10 @@ interface TimestampDAO {
     @Query("SELECT * FROM timestamps WHERE stopwatchId=:id ORDER BY startTime ASC")
     suspend fun getTimestampsFrom(id: String): List<Timestamp>
 
-    @Query("SELECT * FROM timestamps WHERE stopwatchId=:id AND stopTime!=null AND startTime >= :fromDate AND stopTime <= :toDate ORDER BY startTime ASC")
+    @Query("SELECT * FROM timestamps WHERE stopwatchId=:id AND stopTime!=null AND startTime > :fromDate AND stopTime < :toDate ORDER BY startTime ASC")
     suspend fun getTimestampsFromRange(id: String, fromDate: Long, toDate: Long): List<Timestamp>
 
-    @Query("SELECT * FROM timestamps WHERE stopTime!=null AND startTime >= :fromDate AND stopTime <= :toDate ORDER BY startTime ASC")
+    @Query("SELECT * FROM timestamps WHERE stopTime!=null AND startTime > :fromDate AND stopTime < :toDate ORDER BY startTime ASC")
     suspend fun getTimestampsFromRange(fromDate: Long, toDate: Long): List<Timestamp>
 
     @Query("SELECT * FROM timestamps ORDER BY startTime ASC")

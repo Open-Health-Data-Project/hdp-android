@@ -1,11 +1,14 @@
 package org.openhdp.hdt.ui.history
 
+import android.util.Log
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Stopwatch
+import org.openhdp.hdt.data.entities.Timestamp
+import org.openhdp.hdt.data.enums.PrivacyState
 import org.openhdp.hdt.ui.base.BaseViewModel
 
 class HistoryViewModel @ViewModelInject constructor(
