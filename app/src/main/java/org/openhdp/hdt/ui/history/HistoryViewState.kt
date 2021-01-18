@@ -16,11 +16,8 @@ sealed class HistoryViewState {
     data class Stopwatches(val stopwatches: List<Stopwatch>) : HistoryViewState()
 
     data class StopwatchesResult(
-        val stopwatch: Stopwatch,
-        val items: List<DayHeader>
-    ) : HistoryViewState()
-
-    data class HistoryResult(
+        val stopwatch: Stopwatch? = null,
+        val tiemstampToEdit: TimestampEntry? = null,
         val items: List<DayHeader>
     ) : HistoryViewState()
 

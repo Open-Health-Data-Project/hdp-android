@@ -1,14 +1,11 @@
 package org.openhdp.hdt.ui.history
 
-import android.util.Log
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Stopwatch
-import org.openhdp.hdt.data.entities.Timestamp
-import org.openhdp.hdt.data.enums.PrivacyState
 import org.openhdp.hdt.ui.base.BaseViewModel
 
 class HistoryViewModel @ViewModelInject constructor(
@@ -56,7 +53,7 @@ class HistoryViewModel @ViewModelInject constructor(
         displayHistory(stopwatch)
     }
 
-    private fun displayHistory(stopwatch: Stopwatch? = null) {
+    private fun displayHistory(stopwatch: Stopwatch? = null, expandedItemIndex: Int = -1) {
         viewModelScope.launch(Dispatchers.Main) {
             runCatching {
                 provideHistoricEntriesUseCase.execute(stopwatch?.id)
@@ -66,13 +63,19 @@ class HistoryViewModel @ViewModelInject constructor(
                         if (timestamps.isEmpty()) {
                             HistoryViewState.NoStopwatchTimestampsSoFar(stopwatch)
                         } else {
-                            HistoryViewState.StopwatchesResult(stopwatch, timestamps)
+                            HistoryViewState.StopwatchesResult(
+                                stopwatch,
+                                items = timestamps.mapIndexed { index, item ->
+                                    item.copy(isExpanded = index == expandedItemIndex)
+                                })
                         }
                     } else {
                         if (timestamps.isEmpty()) {
                             HistoryViewState.NoStopwatchTimestampsSoFar(stopwatch)
                         } else {
-                            HistoryViewState.HistoryResult(timestamps)
+                            HistoryViewState.StopwatchesResult(items = timestamps.mapIndexed { index, item ->
+                                item.copy(isExpanded = index == expandedItemIndex)
+                            })
                         }
                     }
                 }
@@ -90,11 +93,33 @@ class HistoryViewModel @ViewModelInject constructor(
                 it
             }
         }
-        val currentState = viewState.value
+        pushState<HistoryViewState.StopwatchesResult> { currentState ->
+            currentState.copy(items = currentState.items.map(mapper))
+        }
+    }
+
+    fun editTimestamp(entry: TimestampEntry) {
+        pushState<HistoryViewState.StopwatchesResult> { currentState ->
+            currentState.copy(tiemstampToEdit = entry)
+        }
+    }
+
+    fun onDelete(entry: TimestampEntry) {
+        val currentState = _viewState.value
         if (currentState is HistoryViewState.StopwatchesResult) {
-            _viewState.value = currentState.copy(items = currentState.items.map(mapper))
-        } else if (currentState is HistoryViewState.HistoryResult) {
-            _viewState.value = currentState.copy(items = currentState.items.map(mapper))
+            val stopwatch = currentState.stopwatch
+            val expandedItemIndex = currentState.items.indexOfFirst { it.isExpanded }
+            val shouldExpandEntry = currentState.items[expandedItemIndex].entries.isNotEmpty()
+
+            viewModelScope.launch {
+                runCatching {
+                    stopwatchRepository.deleteTimestamp(entry.timestamp)
+                    displayHistory(
+                        stopwatch = stopwatch,
+                        expandedItemIndex = if (shouldExpandEntry) expandedItemIndex else -1
+                    )
+                }
+            }
         }
     }
 }

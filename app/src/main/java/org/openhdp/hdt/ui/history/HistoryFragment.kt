@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -21,7 +22,6 @@ import org.openhdp.hdt.ui.history.adapter.TimestampEntryItem
 
 @AndroidEntryPoint
 class HistoryFragment : Fragment() {
-
 
     private val args: HistoryFragmentArgs by navArgs()
 
@@ -40,7 +40,9 @@ class HistoryFragment : Fragment() {
         }
         val group = ExpandableGroup(header, it.isExpanded)
         val nestedItems = it.entries.map {
-            TimestampEntryItem(it.label, it.stopwatchName)
+            TimestampEntryItem(it) {
+                viewModel.editTimestamp(it)
+            }
         }
         group.addAll(nestedItems)
         group
@@ -95,20 +97,29 @@ class HistoryFragment : Fragment() {
                 requireActivity().showText("No timestamps so far")
             }
             is HistoryViewState.StopwatchesResult -> {
-                binding.timerSelector.text = state.stopwatch.name
-                groupieSection.update(state.items.map {
-                    renderer.invoke(it)
-                })
+                renderStopwatchesResult(state)
             }
             is HistoryViewState.Error -> {
                 requireActivity().showText("Error ${state.throwable}")
             }
-            is HistoryViewState.HistoryResult -> {
-                binding.timerSelector.text = "History"
-                groupieSection.update(state.items.map {
-                    renderer.invoke(it)
-                })
-            }
+        }
+    }
+
+    private fun renderStopwatchesResult(
+        state: HistoryViewState.StopwatchesResult
+    ) {
+        binding.timerSelector.text = state.stopwatch?.name ?: "History"
+        groupieSection.update(state.items.map {
+            renderer.invoke(it)
+        })
+        state.tiemstampToEdit?.let { entry ->
+            AlertDialog.Builder(requireContext())
+                .setTitle(entry.stopwatchName)
+                .setMessage("Are you sure to delete this timestamp?")
+                .setPositiveButton("YES") { dialog, which ->
+                    viewModel.onDelete(entry)
+                }.setNegativeButton("NO") { _, _ -> }
+                .show()
         }
     }
 
