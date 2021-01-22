@@ -100,7 +100,7 @@ class HistoryViewModel @ViewModelInject constructor(
 
     fun editTimestamp(entry: TimestampEntry) {
         pushState<HistoryViewState.StopwatchesResult> { currentState ->
-            currentState.copy(tiemstampToEdit = entry)
+            currentState.copy(timestampToEdit = entry)
         }
     }
 
@@ -120,6 +120,12 @@ class HistoryViewModel @ViewModelInject constructor(
                     )
                 }
             }
+        }
+    }
+
+    fun onEditFinished() {
+        pushState<HistoryViewState.StopwatchesResult> {
+            it.copy(timestampToEdit = null)
         }
     }
 }

@@ -112,13 +112,16 @@ class HistoryFragment : Fragment() {
         groupieSection.update(state.items.map {
             renderer.invoke(it)
         })
-        state.tiemstampToEdit?.let { entry ->
+        state.timestampToEdit?.let { entry ->
             AlertDialog.Builder(requireContext())
                 .setTitle(entry.stopwatchName)
+                .setCancelable(false)
                 .setMessage("Are you sure to delete this timestamp?")
                 .setPositiveButton("YES") { dialog, which ->
                     viewModel.onDelete(entry)
-                }.setNegativeButton("NO") { _, _ -> }
+                }.setNegativeButton("NO") { dialog, which ->
+                    viewModel.onEditFinished()
+                }
                 .show()
         }
     }
