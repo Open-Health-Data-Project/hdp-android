@@ -5,16 +5,19 @@ import com.xwray.groupie.Item
 import com.xwray.groupie.viewbinding.BindableItem
 import org.openhdp.hdt.R
 import org.openhdp.hdt.databinding.ItemHistoryEntryBinding
-import org.openhdp.hdt.databinding.ItemHistoryHeaderBinding
+import org.openhdp.hdt.ui.history.TimestampEntry
 
 class TimestampEntryItem(
-    val text: String,
-    val stopwatchName: String
+    val entry: TimestampEntry,
+    val listener: (TimestampEntry) -> Unit
 ) :
     BindableItem<ItemHistoryEntryBinding>() {
 
     override fun bind(viewBinding: ItemHistoryEntryBinding, position: Int) {
-        viewBinding.label.text = "$stopwatchName: $text"
+        viewBinding.label.text = "${entry.stopwatchName}:${entry.label}"
+        viewBinding.expandButton.setOnClickListener {
+            listener.invoke(entry)
+        }
     }
 
     override fun getLayout() = R.layout.item_history_entry
@@ -24,6 +27,6 @@ class TimestampEntryItem(
     }
 
     override fun isSameAs(other: Item<*>): Boolean {
-        return other is TimestampEntryItem && other.text == text
+        return other is TimestampEntryItem && other.entry == entry
     }
 }

@@ -78,4 +78,8 @@ class StopwatchRepository @Inject constructor(
             stopwatchDAO.deleteStopwatch(it)
         }
     }
+
+    suspend fun deleteTimestamp(timestamp: Timestamp) {
+        timestampDAO.deleteTimestamp(timestamp)
+    }
 }

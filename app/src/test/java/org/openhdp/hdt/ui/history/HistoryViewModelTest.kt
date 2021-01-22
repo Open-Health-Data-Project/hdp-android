@@ -21,6 +21,7 @@ import org.openhdp.hdt.TestCommons.testStopwatch
 import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.data.entities.Timestamp
+import java.util.*
 
 
 @RunWith(MockitoJUnitRunner::class)
@@ -73,18 +74,21 @@ class HistoryViewModelTest {
     @Test
     fun `when stopwatch is clicked, timestamps are shown`() = runBlockingTest {
         val stopwatch1 = testStopwatch(0, "0", "0")
-        val stopwatch2 = testStopwatch(1, "1", "1")
-        val stopwatches = listOf(stopwatch1, stopwatch2)
-        val timestamps = listOf<DayHeader>(mock(), mock())
-        whenever(stopwatchRepository.stopwatches()).doReturn(stopwatches)
+
+        val timestamps = arrayListOf(
+            DayHeader(false, "label1", DistinctDay.create(Date()), mock()),
+            DayHeader(false, "label2", DistinctDay.create(Date()), mock())
+        )
+
+        whenever(stopwatchRepository.findStopwatch(stopwatch1.id)).thenReturn(stopwatch1)
         whenever(useCase.execute(stopwatch1.id)).doReturn(timestamps)
 
-        viewModel.initialize()
-        viewModel.onStopwatchClick(stopwatch1)
+        viewModel.initialize(stopwatch1.id)
 
         verify(viewStateObserver).onChanged(
             HistoryViewState.StopwatchesResult(
                 stopwatch1,
+                null,
                 timestamps
             )
         )
