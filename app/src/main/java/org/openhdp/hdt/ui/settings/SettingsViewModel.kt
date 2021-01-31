@@ -136,6 +136,7 @@ class SettingsViewModel @ViewModelInject constructor(
             }
         }
     }
+
 }
 
 class NothingToExportException : Exception()
