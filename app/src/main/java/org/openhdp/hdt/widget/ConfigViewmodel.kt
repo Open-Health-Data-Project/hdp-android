@@ -1,5 +1,6 @@
 package org.openhdp.hdt.widget
 
+import android.widget.Toast
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,8 @@ import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Category
 import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.data.entities.Timestamp
+import timber.log.Timber
+import java.lang.Exception
 
 
 class ConfigViewmodel @ViewModelInject constructor(
@@ -26,16 +29,25 @@ class ConfigViewmodel @ViewModelInject constructor(
 
     fun requestCategoryWithTimestamp(
         stopwatch: Stopwatch,
-        callback: (Category, Timestamp) -> Unit
+        errorCallback: (Throwable) -> Unit = {},
+        callback: (Category, Timestamp) -> Unit,
     ) {
-        viewModelScope.launch {
-            stopwatchRepository.categories().firstOrNull {
-                it.id == stopwatch.categoryId
-            }?.let { category ->
-                stopwatchRepository.lastTimestampOf(stopwatch.id)?.let { lastTimestamp ->
-                    callback.invoke(category, lastTimestamp)
+        viewModelScope.launch(Dispatchers.Main) {
+            runCatching {
+                val category = stopwatchRepository.categories().firstOrNull {
+                    it.id == stopwatch.categoryId
                 }
-            }
+                if (category != null) {
+                    val lastTimestamp = stopwatchRepository.lastTimestampOf(stopwatch.id)
+                    if (lastTimestamp != null) {
+                        callback.invoke(category, lastTimestamp)
+                    } else {
+                        errorCallback.invoke(Exception("null timestamp"))
+                    }
+                } else {
+                    errorCallback.invoke(Exception("null category"))
+                }
+            }.onFailure(errorCallback)
         }
     }
 }

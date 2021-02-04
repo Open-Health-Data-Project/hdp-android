@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.openhdp.hdt.data.StopwatchRepository
+import org.openhdp.hdt.data.entities.Category
 import org.openhdp.hdt.data.entities.Stopwatch
+import org.openhdp.hdt.data.entities.Timestamp
 import org.openhdp.hdt.ui.base.BaseViewModel
 import org.openhdp.hdt.ui.settings.export.ExportCategoriesUseCase
 import org.openhdp.hdt.ui.settings.export.ExportStopwatchesUseCase
@@ -137,6 +139,25 @@ class SettingsViewModel @ViewModelInject constructor(
         }
     }
 
+    fun requestStopwatches(callback: (List<Stopwatch>) -> Unit) {
+        viewModelScope.launch(Dispatchers.Main) {
+            runCatching {
+                stopwatchRepository.stopwatches()
+            }.onSuccess { stopwatches -> callback(stopwatches) }
+        }
+    }
+
+    fun requestStopwatchData(stopwatch: Stopwatch, function: (Category, Timestamp) -> Unit) {
+        viewModelScope.launch(Dispatchers.Main) {
+            stopwatchRepository.categories().firstOrNull {
+                it.id == stopwatch.categoryId
+            }?.let { category ->
+                stopwatchRepository.lastTimestampOf(stopwatch.id)?.let {
+                    function(category, it)
+                }
+            }
+        }
+    }
 }
 
 class NothingToExportException : Exception()

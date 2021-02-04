@@ -1,134 +1,119 @@
 package org.openhdp.hdt.widget
 
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.widget.LinearLayout
-import android.widget.RemoteViews
 import androidx.annotation.ColorInt
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
-import org.openhdp.hdt.R
-import org.openhdp.hdt.data.entities.Category
-import org.openhdp.hdt.data.entities.Stopwatch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.openhdp.hdt.data.StopwatchRepository
 import org.openhdp.hdt.data.entities.Timestamp
+import org.openhdp.hdt.widget.StopwatchWidgetHelper.ACTION_TOGGLE
+import org.openhdp.hdt.widget.StopwatchWidgetHelper.EXTRA_VIEWSTATE
+import org.openhdp.hdt.widget.StopwatchWidgetHelper.bindRemoteViews
+import org.openhdp.hdt.widget.StopwatchWidgetHelper.bindWidgetUI
 import timber.log.Timber
 import java.io.Serializable
 import java.util.*
-import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class StopwatchWidgetProvider : AppWidgetProvider() {
 
     companion object {
-
-        private val KLAZZ = StopwatchWidgetProvider::class.java
-        private const val REQUEST_CODE_TOGGLE = 233
-        private const val EXTRA_VIEWSTATE = "EXTRA_VIEWSTATE"
+        val Context.appWidgetManager: AppWidgetManager
+            get() = AppWidgetManager.getInstance(this)
 
         fun updateWidgets(context: Context) {
-            val intent = Intent(context, KLAZZ)
+            val intent = Intent(context, StopwatchWidgetProvider::class.java)
             intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-            val widgetIDs =
-                AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, KLAZZ))
+            val widgetIDs = context.appWidgetManager
+                .getAppWidgetIds(ComponentName(context, StopwatchWidgetProvider::class.java))
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIDs)
             context.sendBroadcast(intent)
         }
-
-        fun getRemoteViews(context: Context, widgetName: String): RemoteViews {
-            val remoteViews = RemoteViews(context.packageName, R.layout.appwidget_stopwatch)
-            remoteViews.setTextViewText(R.id.timer_name, widgetName)
-            return remoteViews
-        }
-
-        fun bindRemoteViews(context: Context, state: StopwatchViewState): RemoteViews {
-            val remoteViews = RemoteViews(context.packageName, R.layout.appwidget_stopwatch)
-
-            remoteViews.setInt(R.id.appwidget_root, "setBackgroundColor", state.backgroundColor)
-
-            remoteViews.setTextViewText(R.id.timer_name, state.name)
-
-            val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(Date().time - state.millis)
-            val minutes = totalSeconds / 60
-            val hours = totalSeconds / 3600
-            remoteViews.setTextViewText(
-                R.id.timer_time,
-                String.format(
-                    "%02d:%02d:%02d",
-                    hours.rem(24),
-                    minutes.rem(60),
-                    totalSeconds.rem(60)
-                )
-            )
-            val src = if (state.isRunning) R.drawable.ic_pause else R.drawable.ic_play
-            remoteViews.setImageViewResource(R.id.play_or_pause, src)
-            val clickPendingIntent = PendingIntent.getBroadcast(
-                context,
-                REQUEST_CODE_TOGGLE,
-                Intent(context, KLAZZ).apply {
-                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                    val widgetIDs = AppWidgetManager.getInstance(context)
-                        .getAppWidgetIds(ComponentName(context, KLAZZ))
-                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIDs)
-                    val newState = Gson().toJson(state.copy(isRunning = !state.isRunning))
-                    putExtra(EXTRA_VIEWSTATE, newState)
-                },
-                0
-            )
-            remoteViews.setOnClickPendingIntent(R.id.play_or_pause, clickPendingIntent)
-            return remoteViews
-        }
-
-        fun updateWidgetUI(
-            context: Context,
-            appWidgetManager: AppWidgetManager,
-            widgetPreferences: WidgetPreferences,
-            widgetId: Int
-        ) {
-            val widgetName = widgetPreferences.getWidgetName(widgetId)
-            if (widgetName != null) {
-                appWidgetManager.updateAppWidget(widgetId, getRemoteViews(context, widgetName))
-            }
-        }
-
-        fun bindWidgetUI(
-            context: Context,
-            appWidgetManager: AppWidgetManager,
-            stopwatch: Stopwatch,
-            lastTimestamp: Timestamp,
-            category: Category,
-            widgetId: Int
-        ) {
-            val viewState = StopwatchViewState(
-                stopwatch.id,
-                widgetId,
-                stopwatch.name,
-                isRunning = lastTimestamp.stopTime == null,
-                category.color,
-                lastTimestamp.startTime
-            )
-
-            val remoteViews = bindRemoteViews(context, viewState)
-            appWidgetManager.updateAppWidget(widgetId, remoteViews)
-        }
     }
 
-    private var viewState: StopwatchViewState? = null
+    @Inject
+    lateinit var stopwatchRepository: StopwatchRepository
 
-    override fun onReceive(context: Context?, intent: Intent?) {
-        super.onReceive(context, intent)
-        Timber.d("onReceive ${intent?.getStringExtra(EXTRA_VIEWSTATE)}")
-        try {
-            viewState = Gson().fromJson(
-                intent?.getStringExtra(EXTRA_VIEWSTATE),
-                StopwatchViewState::class.java
+    override fun onReceive(context: Context, intent: Intent) {
+        if (ACTION_TOGGLE == intent.action) {
+            val widgetId = intent.getIntExtra(
+                AppWidgetManager.EXTRA_APPWIDGET_ID,
+                StopwatchWidgetHelper.NO_ID
             )
-        } catch (t: Throwable) {
-            Timber.e("failed to fetch viewstate...")
+            if (widgetId != StopwatchWidgetHelper.NO_ID) {
+                runCatching {
+                    val viewState: StopwatchViewState = Gson().fromJson(
+                        intent.getStringExtra(EXTRA_VIEWSTATE),
+                        StopwatchViewState::class.java
+                    )
+                    context.pushNewState(viewState.copy(isLoading = true, widgetId = widgetId))
+                    toggleStopwatch(viewState) { newState ->
+                        context.pushNewState(newState)
+                    }
+
+                }.onFailure {
+                    Timber.e("onReceive $it")
+                }
+            }
+        }
+        super.onReceive(context, intent)
+    }
+
+    private fun Context.pushNewState(newState: StopwatchViewState) {
+        val remoteViews = bindRemoteViews(this, newState)
+        WidgetPreferences(this).saveWidget(newState.stopwatchId, newState)
+        appWidgetManager.updateAppWidget(newState.widgetId, remoteViews)
+    }
+
+    private fun toggleStopwatch(
+        viewState: StopwatchViewState,
+        callback: (viewState: StopwatchViewState) -> Unit
+    ) {
+        GlobalScope.launch(Dispatchers.IO) {
+            runCatching {
+                val stopwatchId = viewState.stopwatchId
+                val now = Date().time
+                if (viewState.isRunning) {
+                    val lastTimestamp = stopwatchRepository.lastTimestampOf(stopwatchId)
+                    if (lastTimestamp != null) {
+                        stopwatchRepository.updateTimestamp(lastTimestamp.id, now)
+                    }
+                    callback.invoke(
+                        viewState.copy(
+                            isRunning = false,
+                            isLoading = false,
+                            millis = now
+                        )
+                    )
+                } else {
+                    // create new timestamp
+                    stopwatchRepository.createTimestamp(
+                        Timestamp(
+                            stopwatchId = stopwatchId,
+                            startTime = now
+                        )
+                    )
+                    callback.invoke(
+                        viewState.copy(
+                            isRunning = true,
+                            isLoading = false,
+                            millis = now
+                        )
+                    )
+                }
+            }.onFailure {
+                Timber.d("on failure $it")
+            }
         }
     }
 
@@ -137,22 +122,20 @@ class StopwatchWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        super.onUpdate(context, appWidgetManager, appWidgetIds)
         Timber.d("onUpdate ${appWidgetIds.joinToString { it.toString() }}")
-        if (viewState != null) {
-
-        } else {
-            val widgetPreferences = WidgetPreferences(context)
-            for (widgetId: Int in appWidgetIds) {
-                updateWidgetUI(context, appWidgetManager, widgetPreferences, widgetId)
+        val widgetPreferences = WidgetPreferences(context)
+        for (widgetId: Int in appWidgetIds) {
+            widgetPreferences.getWidgetViewState(widgetId)?.let { viewState ->
+                bindWidgetUI(context, appWidgetManager, viewState)
             }
         }
+        super.onUpdate(context, appWidgetManager, appWidgetIds)
 
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
-        Timber.d("onUpdate ${appWidgetIds.joinToString { it.toString() }}")
+        Timber.d("onDeleted ${appWidgetIds.joinToString { it.toString() }}")
         val widgetPreferences = WidgetPreferences(context)
         for (appWidgetId: Int in appWidgetIds) {
             widgetPreferences.removeWidget(appWidgetId)
@@ -160,36 +143,41 @@ class StopwatchWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onAppWidgetOptionsChanged(
-        context: Context?,
-        appWidgetManager: AppWidgetManager?,
+        context: Context,
+        appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
         newOptions: Bundle?
     ) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
         Timber.d("onAppWidgetOptionsChanged")
+        WidgetPreferences(context).getWidgetViewState(appWidgetId)?.let { viewState ->
+            bindWidgetUI(context, appWidgetManager, viewState)
+        }
     }
 
-    override fun onEnabled(context: Context?) {
+    override fun onEnabled(context: Context) {
         super.onEnabled(context)
         Timber.d("onEnabled")
     }
 
-    override fun onDisabled(context: Context?) {
+    override fun onDisabled(context: Context) {
         super.onDisabled(context)
         Timber.d("onDisabled")
     }
 
-    override fun onRestored(context: Context?, oldWidgetIds: IntArray?, newWidgetIds: IntArray?) {
+    override fun onRestored(context: Context, oldWidgetIds: IntArray, newWidgetIds: IntArray) {
         super.onRestored(context, oldWidgetIds, newWidgetIds)
         Timber.d("onRestored")
     }
 }
+
 
 data class StopwatchViewState(
     val stopwatchId: String,
     val widgetId: Int,
     val name: String,
     val isRunning: Boolean,
+    val isLoading: Boolean = false,
     @ColorInt val backgroundColor: Int,
     val millis: Long
 ) : Serializable

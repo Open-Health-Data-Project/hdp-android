@@ -1,8 +1,6 @@
 package org.openhdp.hdt.ui.settings
 
 import android.app.TimePickerDialog
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -11,11 +9,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TimePicker
-import android.widget.Toast
-import androidx.annotation.RequiresApi
-import androidx.core.os.bundleOf
+import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.openhdp.hdt.BuildConfig
@@ -23,8 +19,7 @@ import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.databinding.FragmentSettingsBinding
 import org.openhdp.hdt.showText
 import org.openhdp.hdt.ui.settings.export.ExportPickerHelper
-import org.openhdp.hdt.widget.StopwatchWidgetPinnedReceiver
-import org.openhdp.hdt.widget.StopwatchWidgetProvider
+import org.openhdp.hdt.widget.AppWidgetConfigActivity
 import java.util.*
 
 @AndroidEntryPoint
@@ -60,38 +55,16 @@ class SettingsFragment : Fragment() {
         binding.versionName.text = "Version name: \"${BuildConfig.VERSION_NAME}\""
         binding.versionCode.text = "Version code: ${BuildConfig.VERSION_CODE}"
 
-        binding.enableStopwatchWidgetRoot.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                requireActivity().pinStopwatch()
-            } else {
-                Toast.makeText(
-                    requireActivity(),
-                    "Widget  can only be pinned on Oreo and above!",
-                    Toast.LENGTH_SHORT
-                ).show()
+        val widgetPinningSupported = widgetPinningSupported()
+        if (widgetPinningSupported) {
+            binding.enableStopwatchWidgetRoot.setOnClickListener { view1 ->
+                AlertDialog.Builder(requireContext())
+                    .setTitle("How to configure stopwatch?")
+                    .setMessage("Long press on home screen and select widget!")
+                    .setPositiveButton("Got it!") { _, _ -> }
+                    .show()
             }
         }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun FragmentActivity.pinStopwatch() {
-        val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
-        val provider = ComponentName(applicationContext, StopwatchWidgetProvider::class.java)
-
-        if (!appWidgetManager.isRequestPinAppWidgetSupported) {
-            Toast.makeText(this, "failed to pin app widget :( ", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val successCallback = StopwatchWidgetPinnedReceiver.getPendingIntent(this, "stopwatch")
-
-        val remoteViews = StopwatchWidgetProvider.getRemoteViews(this, "stopwatch")
-
-        appWidgetManager.requestPinAppWidget(
-            provider,
-            bundleOf(AppWidgetManager.EXTRA_APPWIDGET_PREVIEW to remoteViews),
-            successCallback
-        )
     }
 
     private fun renderState(state: SettingsViewState): Any = when (state) {
@@ -167,4 +140,6 @@ class SettingsFragment : Fragment() {
         )
         startActivity(Intent.createChooser(intentShareFile, "Share CSV"));
     }
+
+    private fun widgetPinningSupported() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 }

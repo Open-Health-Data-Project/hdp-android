@@ -32,8 +32,9 @@ class TrackingViewModel @ViewModelInject constructor(
     private var job: Job? = null
 
     fun initialize() {
-        runBlocking { stopCountdown() }
+
         viewModelScope.launch(Dispatchers.Main) {
+            stopCountdown()
             runCatching {
                 val stopwatches = stopwatchRepository.stopwatches()
                 val categories = stopwatchRepository.categories()
