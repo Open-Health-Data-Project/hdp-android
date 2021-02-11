@@ -1,16 +1,12 @@
-# Data flow in the project
-
-![Photo](http://foto.hostuje.org/x/4c45748965b29b100efef30d1eb4ff16.png)
-
 # How to contribute
 
 We are very glad that you want to contribute in our project.
 
 Here are some important resources:
 
-- Plan of the entire project - ![Google Docs](https://docs.google.com/document/d/1MU2Aro2VZD63In0KL3ywcylPOVT7OogQPdlA3MKZqXk/edit?usp=sharing)
-- Plan of this Android app - ![Google Docs](https://docs.google.com/document/d/1NQ6tbTsCruNazYXMWeWZSLpaLYu84ZGdus88GoP0e64/edit?usp=sharing)
-- Mind Map of the Project - ![Mind Map](https://bubbl.us/NTYxMTAxNy8xMDY5NTQzNC84YjE5MDRjMGI5ZmIzNjVmNDljNjAwMzIzMWU4NWQwYQ==-X)
+- Plan of the entire project - [Main repository](https://github.com/Open-Health-Data-Project/Open-Health-Data-Project)
+- Plan of this Android app - [Application plan](https://github.com/Open-Health-Data-Project/hdp-android/blob/develop/APPLICATION_PLAN.md)
+- Mind Map of the Project - [Mind Map](https://bubbl.us/NTYxMTAxNy8xMDY5NTQzNC84YjE5MDRjMGI5ZmIzNjVmNDljNjAwMzIzMWU4NWQwYQ==-X)
 
 ## Submitting changes
 
