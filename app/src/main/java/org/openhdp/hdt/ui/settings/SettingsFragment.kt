@@ -3,11 +3,14 @@ package org.openhdp.hdt.ui.settings
 import android.app.TimePickerDialog
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TimePicker
+import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -16,10 +19,16 @@ import org.openhdp.hdt.data.entities.Stopwatch
 import org.openhdp.hdt.databinding.FragmentSettingsBinding
 import org.openhdp.hdt.showText
 import org.openhdp.hdt.ui.settings.export.ExportPickerHelper
+import org.openhdp.hdt.widget.AppWidgetConfigActivity
 import java.util.*
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
+
+    companion object {
+        const val ACTION_PIN_APP_WIDGET = "ACTION_PIN_APP_WIDGET"
+        const val EXTRA_STOPWATCH_ID = "EXTRA_STOPWATCH_ID"
+    }
 
     private val viewModel: SettingsViewModel by viewModels()
 
@@ -29,7 +38,7 @@ class SettingsFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentSettingsBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -45,6 +54,17 @@ class SettingsFragment : Fragment() {
 
         binding.versionName.text = "Version name: \"${BuildConfig.VERSION_NAME}\""
         binding.versionCode.text = "Version code: ${BuildConfig.VERSION_CODE}"
+
+        val widgetPinningSupported = widgetPinningSupported()
+        if (widgetPinningSupported) {
+            binding.enableStopwatchWidgetRoot.setOnClickListener { view1 ->
+                AlertDialog.Builder(requireContext())
+                    .setTitle("How to configure stopwatch?")
+                    .setMessage("Long press on home screen and select widget!")
+                    .setPositiveButton("Got it!") { _, _ -> }
+                    .show()
+            }
+        }
     }
 
     private fun renderState(state: SettingsViewState): Any = when (state) {
@@ -120,4 +140,6 @@ class SettingsFragment : Fragment() {
         )
         startActivity(Intent.createChooser(intentShareFile, "Share CSV"));
     }
+
+    private fun widgetPinningSupported() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 }

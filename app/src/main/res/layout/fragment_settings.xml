@@ -73,4 +73,27 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/enable_stopwatch_widget_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="18dp"
+            android:text="Stopwatch as a widget" />
+
+        <TextView
+            android:id="@+id/enable_stopwatch_widget"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Configure..." />
+
+    </LinearLayout>
+
 </LinearLayout>
